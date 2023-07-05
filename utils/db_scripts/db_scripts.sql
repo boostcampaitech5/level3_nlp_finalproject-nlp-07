@@ -10,6 +10,7 @@ CREATE TABLE `products`
     `brand_name`           varchar(255) COMMENT '판매사',
     `positive_reviews_cnt` int COMMENT '긍정 리뷰 수',
     `negative_reviews_cnt` int COMMENT '부정 리뷰 수',
+    'product_summary'     varchar(255) COMMENT '제품 요약(모델링)',
     PRIMARY KEY (`product_id`)
 ) COMMENT = '제품 정보 테이블';
 
@@ -29,8 +30,6 @@ CREATE TABLE `reviews`
     `create_date`     varchar(255) COMMENT '작성일',
     `top100_yn`       varchar(1) COMMENT '리뷰작성자 TOP 100 여부',
     `sentiment`       varchar(1) COMMENT '긍부정판단(모델링)',
-    `keywords`        varchar(255) COMMENT '키워드 추출(모델링)',
-    `search_caterory` varchar(255) COMMENT '검색 카테고리',
     PRIMARY KEY (`review_id`)
 ) COMMENT = '리뷰 정보 테이블';
 
