@@ -11,6 +11,8 @@ import csv
 from datetime import datetime
 from pytz import timezone
 from tqdm import tqdm
+from preprocessing import preprocess
+
 def get_headers(
     key: str,
     default_value: Optional[str] = None
@@ -131,6 +133,7 @@ class Coupang:
                     review_content = ''
                 else:
                     review_content = re.sub('[\n\t]','',review_content.text.strip())
+                    review_content = preprocess(review_content)
 
                 if len(review_content) < 50:
                     continue
@@ -144,6 +147,18 @@ class Coupang:
                     answer = ''
                 else:
                     answer = answer.text.strip()
+
+                help_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
+                if help_cnt == None or help_cnt.text == '':
+                    help_cnt = 0
+                else:
+                    help_cnt_str = help_cnt.text.strip().split('명에게 도움 됨')[0]  # Split the string and get the first part
+                    help_cnt = int(help_cnt_str)  # Then convert it to integer
+                # print(help_cnt)
+
+                if help_cnt < 10:
+                    continue
+
 
 
                 # 원본 URL
