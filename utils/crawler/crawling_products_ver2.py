@@ -10,6 +10,7 @@ outputname='떡볶이'
 driver = webdriver.Chrome(executable_path='chromedriver')
 
 data = []
+name_list = []
 
 for product_code in product_codes:
 
@@ -27,6 +28,13 @@ for product_code in product_codes:
             # 제품명
             name = li.find_element(By.CLASS_NAME, 'name').text
             name = name.replace('\"', '')  # 쉼표 제거
+
+            if name in name_list:
+                continue
+            name_list.append(name)
+
+            # 제품 고유번호
+            # unique_product_id = li.find_element(By.CLASS_NAME, 'search-product').get_attribute('data-product-id')
 
             # 가격
             price = li.find_element(By.CLASS_NAME, 'price-value').text
@@ -82,6 +90,7 @@ for product_code in product_codes:
 
             if rating <= 3.0:
                 continue
+
 
             data.append([name, price, review_cnt, rating, ad_yn, url])
             cnt += 1
