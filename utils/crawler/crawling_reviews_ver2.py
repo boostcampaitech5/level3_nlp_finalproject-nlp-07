@@ -148,27 +148,27 @@ class Coupang:
                 else:
                     answer = answer.text.strip()
 
-                help_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
-                if help_cnt == None or help_cnt.text == '':
+                helped_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
+                if helped_cnt == None or helped_cnt.text == '':
                     help_cnt = 0
                 else:
                     help_cnt_str = help_cnt.text.strip().split('명에게 도움 됨')[0]  # Split the string and get the first part
-                    help_cnt = int(help_cnt_str)  # Then convert it to integer
+                    helped_cnt = int(help_cnt_str)  # Then convert it to integer
                 # print(help_cnt)
 
-                if help_cnt < 10:
+                if helped_cnt < 1:
                     continue
 
 
 
                 # 원본 URL
-                dict_data['url'] = url
                 dict_data['prod_name'] = prod_name
                 dict_data['user_name'] = user_name
                 dict_data['rating'] = rating
                 dict_data['headline'] = headline
                 dict_data['review_content'] = review_content
                 dict_data['answer'] = answer
+                dict_data['helped_cnt'] = help_cnt
 
                 review_counter += 1
 
@@ -230,7 +230,7 @@ class CSV:
         results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list)
 
         # 파일에 쓸 데이터 준비
-        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'url']
+        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt']
         # 서울 시간
         now = datetime.now(timezone('Asia/Seoul'))
         # 파일 이름
