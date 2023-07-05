@@ -15,7 +15,7 @@ CREATE TABLE `products`
 
 
 
-CREATE TABLE `reviews_up`
+CREATE TABLE `reviews`
 (
     `review_id`       int NOT NULL AUTO_INCREMENT COMMENT '리뷰 ID',
     `prod_id`         int COMMENT '제품 ID',
