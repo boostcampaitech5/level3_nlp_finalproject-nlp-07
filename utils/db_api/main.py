@@ -40,7 +40,7 @@ def create_conn():
                            db=mysql_config['db'], charset=mysql_config['charset'])
 
 
-@app.get("product/prod_name/{prod_name}")
+@app.get("/product/prod_name/{prod_name}")
 async def search_product(prod_name: str):
     '''
     제품명 검색 API
