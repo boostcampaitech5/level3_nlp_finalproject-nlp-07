@@ -43,7 +43,7 @@ def create_conn():
 @app.get("/product/prod_name/{prod_name}")
 async def search_product(prod_name: str):
     '''
-    제품명 검색 API
+    제품명 검색 API (LIKE)
     :param prod_name:
     :return:
     '''
@@ -66,7 +66,7 @@ async def search_product(prod_name: str):
 @app.get("/reviews/prod_name/{prod_name}")
 def read_reviews(prod_name: str):
     '''
-    제품명으로 리뷰 검색 API
+    정확히 일치하는 제품명 관련 리뷰 찾기 API (일치)
     :param prod_name:
     :return:
     '''
@@ -83,6 +83,39 @@ def read_reviews(prod_name: str):
     for row in result:
         reviews.append({
             "prod_id": row[1],
+            "prod_name" : row[2],
+            "rating": row[3],
+            "title": row[4],
+            "context": row[5],
+            "answer": row[6],
+            "review_url": row[7]
+        })
+
+    conn.close()
+    return {"reviews": reviews}
+
+
+@app.get("/reviews/search/prod_name/{prod_name}")
+def read_reviews(prod_name: str):
+    '''
+    제품명으로 리뷰 검색 API (LIKE)
+    :param prod_name:
+    :return:
+    '''
+    conn = create_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM reviews WHERE prod_name LIKE %s", ('%' + prod_name + '%',))
+    result = cursor.fetchall()
+
+    if len(result) == 0:
+        conn.close()
+        return {"error": f"No product found for name: {prod_name}"}
+
+    reviews = []
+    for row in result:
+        reviews.append({
+            "prod_id": row[1],
+            "prod_name": row[2],
             "rating": row[3],
             "title": row[4],
             "context": row[5],
@@ -113,6 +146,7 @@ def read_reviews():
     for row in result:
         reviews.append({
             "prod_id": row[1],
+            "prod_name": row[2],
             "rating": row[3],
             "title": row[4],
             "context": row[5],
