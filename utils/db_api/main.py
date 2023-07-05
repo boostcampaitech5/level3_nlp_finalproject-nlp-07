@@ -82,12 +82,12 @@ def read_reviews(prod_name: str):
     reviews = []
     for row in result:
         reviews.append({
-            "prod_id": row[0],
-            "rating": row[1],
-            "title": row[2],
-            "context": row[3],
-            "answer": row[4],
-            "review_url": row[5]
+            "prod_id": row[1],
+            "rating": row[3],
+            "title": row[4],
+            "context": row[5],
+            "answer": row[6],
+            "review_url": row[7]
         })
 
     conn.close()
@@ -112,12 +112,12 @@ def read_reviews():
     reviews = []
     for row in result:
         reviews.append({
-            "prod_id": row[0],
-            "rating": row[1],
-            "title": row[2],
-            "context": row[3],
-            "answer": row[4],
-            "review_url": row[5]
+            "prod_id": row[1],
+            "rating": row[3],
+            "title": row[4],
+            "context": row[5],
+            "answer": row[6],
+            "review_url": row[7]
         })
 
     conn.close()
