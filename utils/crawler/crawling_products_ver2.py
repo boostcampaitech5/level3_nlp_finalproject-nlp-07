@@ -104,7 +104,7 @@ for product_code in product_codes:
 driver.quit()
 
 # Convert list of lists into dataframe
-df_output = pd.DataFrame(data, columns=['name','price', 'review_cnt', 'rating', 'ad_yn', 'url'])
+df_output = pd.DataFrame(data, columns=['name','price', 'review_cnt', 'rating', 'ad_yn', 'URL'])
 
 # Write dataframe to CSV
 df_output.to_csv(f"product_{outputname}_ver2.csv", index=False)
