@@ -175,4 +175,4 @@ encoders/
 config/
 *.ini
 
-!utils/crawler/json/header.json
+!utils/crawler/json/headers.json
