@@ -58,7 +58,7 @@ async def search_product(prod_name: str):
 
     products = []
     for row in results:
-        products.append({"prod_name": row[1], "price": row[2], "url": row[3]})
+        products.append({"prod_name": row[1], "price": row[3], "url": row[4]})
 
     return {"products": products}
 
