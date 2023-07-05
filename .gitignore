@@ -174,3 +174,5 @@ wandb/
 encoders/
 config/
 *.ini
+
+!utils/crawler/json/header.json
