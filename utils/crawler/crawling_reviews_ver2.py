@@ -150,9 +150,9 @@ class Coupang:
 
                 helped_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
                 if helped_cnt == None or helped_cnt.text == '':
-                    help_cnt = 0
+                    helped_cnt = 0
                 else:
-                    help_cnt_str = help_cnt.text.strip().split('명에게 도움 됨')[0]  # Split the string and get the first part
+                    help_cnt_str = helped_cnt.text.strip().split('명에게 도움 됨')[0]  # Split the string and get the first part
                     helped_cnt = int(help_cnt_str)  # Then convert it to integer
                 # print(help_cnt)
 
@@ -168,7 +168,7 @@ class Coupang:
                 dict_data['headline'] = headline
                 dict_data['review_content'] = review_content
                 dict_data['answer'] = answer
-                dict_data['helped_cnt'] = help_cnt
+                dict_data['helped_cnt'] = helped_cnt
 
                 review_counter += 1
 
@@ -221,7 +221,7 @@ class CSV:
     @staticmethod
     def save_file()-> None:
 
-        product_name = '떡볶이'
+        product_name = '치킨'
 
         file_path = f"./product_{product_name}_ver2.csv"
         url_list = load_urls(file_path)

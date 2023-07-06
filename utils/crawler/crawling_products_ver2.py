@@ -4,8 +4,8 @@ from selenium.webdriver.common.by import By
 import re
 import time
 # Extract product codes
-product_codes = [486586]
-outputname='떡볶이'
+product_codes = ['치킨']
+outputname='치킨'
 
 driver = webdriver.Chrome(executable_path='chromedriver')
 
@@ -14,7 +14,7 @@ name_list = []
 
 for product_code in product_codes:
 
-    url = 'https://www.coupang.com/np/search?component=&q=떡볶이&channel=user'
+    url = 'https://www.coupang.com/np/search?component=&q=치킨&channel=user'
     driver.get(url)
 
     lis = driver.find_elements(By.TAG_NAME, 'li')

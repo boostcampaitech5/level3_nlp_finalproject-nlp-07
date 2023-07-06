@@ -21,14 +21,14 @@ conn = create_conn()
 curs = conn.cursor()
 
 # 제품 데이터 삽입
-with open('../crawler/product_떡볶이_ver2.csv', 'r', encoding='utf-8') as f_products:
+with open('../crawler/product_치킨_ver2.csv', 'r', encoding='utf-8') as f_products:
     csvReader = csv.reader(f_products)
     next(csvReader)  # 헤더 건너뛰기
     for row in tqdm(csvReader):
         prod_name, price, review_cnt, avg_rating, ad_yn, url = row[0], row[1], row[2], row[3], row[4], row[5]
 
         sql = """
-        INSERT INTO products_ver2
+        INSERT INTO products_ver3
         (prod_name, price, review_cnt, avg_rating, ad_yn, url)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
@@ -36,7 +36,7 @@ with open('../crawler/product_떡볶이_ver2.csv', 'r', encoding='utf-8') as f_p
         conn.commit()
 
 # 리뷰 데이터 삽입
-with open('../crawler/review_떡볶이_ver2.csv', 'r', encoding='utf-8') as f_reviews:
+with open('../crawler/review_치킨_ver2.csv', 'r', encoding='utf-8') as f_reviews:
     csvReader = csv.reader(f_reviews)
     next(csvReader)  # 헤더 건너뛰기
     for row in tqdm(csvReader):
@@ -52,7 +52,7 @@ with open('../crawler/review_떡볶이_ver2.csv', 'r', encoding='utf-8') as f_re
         product_id = result[0]
 
         sql = """
-        INSERT INTO reviews_ver2
+        INSERT INTO reviews_ver3
         (prod_id, prod_name, rating, title, context, answer, helped_cnt)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
