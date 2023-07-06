@@ -36,7 +36,7 @@ with open('../crawler/product_치킨_ver2.csv', 'r', encoding='utf-8') as f_prod
         conn.commit()
 
 # 리뷰 데이터 삽입
-with open('../crawler/review_치킨_ver2.csv', 'r', encoding='utf-8') as f_reviews:
+with open('../crawler/review_치킨_ver2.1.csv', 'r', encoding='utf-8') as f_reviews:
     csvReader = csv.reader(f_reviews)
     next(csvReader)  # 헤더 건너뛰기
     for row in tqdm(csvReader):
@@ -44,7 +44,7 @@ with open('../crawler/review_치킨_ver2.csv', 'r', encoding='utf-8') as f_revie
         prod_name, user_name, rating, title, context, answer, helped_cnt = row[0], row[1], row[2], row[3], row[4], row[5], row[6]
 
         # 해당 제품의 product_id 가져오기
-        curs.execute("SELECT product_id FROM products_ver2 WHERE prod_name = %s", (prod_name,))
+        curs.execute("SELECT product_id FROM products_ver3 WHERE prod_name = %s", (prod_name,))
         result = curs.fetchone()
         if result is None:
             # print(f"No product found for name: {prod_name}")

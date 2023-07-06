@@ -53,7 +53,7 @@ class Coupang:
 
             review_counter = 0
 
-            for page in range(1, 50):
+            for page in range(1, 100):
                 # URL 주소 재가공
                 url_to_fetch = f'https://www.coupang.com/vp/product/reviews?productId={prod_code}&page={page}&size=10&sortBy=ORDER_SCORE_ASC&ratings=&q=&viRoleCode=3&ratingSummary=true'
 
@@ -148,6 +148,18 @@ class Coupang:
                 else:
                     answer = answer.text.strip()
 
+                divs = soup.find_all('div', class_='sdp-review__article__list__survey__row')
+                suryey_list = []
+                # 각 div 요소에 대한 정보를 출력합니다
+                for div in divs:
+                    question = div.find('span', class_='sdp-review__article__list__survey__row__question').text
+                    answer = div.find('span', class_='sdp-review__article__list__survey__row__answer').text
+                    # print(f"Question: {question}, Answer: {answer}")
+                    mix_text = f'<{question}>{answer}'
+                    suryey_list.append(mix_text)
+                survey = ''.join(suryey_list)
+                # print(suryey)
+
                 helped_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
                 if helped_cnt == None or helped_cnt.text == '':
                     helped_cnt = 0
@@ -169,6 +181,7 @@ class Coupang:
                 dict_data['review_content'] = review_content
                 dict_data['answer'] = answer
                 dict_data['helped_cnt'] = helped_cnt
+                dict_data['survey'] = survey
 
                 review_counter += 1
 
@@ -230,12 +243,12 @@ class CSV:
         results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list)
 
         # 파일에 쓸 데이터 준비
-        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt']
+        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt', 'survey']
         # 서울 시간
         now = datetime.now(timezone('Asia/Seoul'))
         # 파일 이름
         # csv_file = f'../reviews/{product_name}_{now.strftime("%y%m%d_%H")}.csv'
-        csv_file = f'./review_{product_name}_ver2.csv'
+        csv_file = f'./review_{product_name}_ver2.1.csv'
 
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
