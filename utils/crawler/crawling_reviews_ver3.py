@@ -267,9 +267,7 @@ def load_urls(file_path: str) -> List[str]:
 
 class CSV:
     @staticmethod
-    def save_file()-> None:
-
-        file_name = 'product_list_20230707_155551'
+    def save_file(file_name)-> None:
 
         file_path = f"./{file_name}.csv"
         url_list, prod_names, search_names = load_urls(file_path)
@@ -282,7 +280,6 @@ class CSV:
         # 서울 시간
         now = datetime.now(timezone('Asia/Seoul'))
         # 파일 이름
-        # csv_file = f'../reviews/{product_name}_{now.strftime("%y%m%d_%H")}.csv'
         csv_file = f'./review_{file_name}.csv'
 
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
@@ -297,5 +294,7 @@ class CSV:
 
 if __name__ == '__main__':
 
-    CSV.save_file()
+    file_name = 'product_list_20230707_175611'
+
+    CSV.save_file(file_name)
     print("크롤링 완료!")
