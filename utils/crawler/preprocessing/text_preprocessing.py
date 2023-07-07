@@ -5,7 +5,14 @@ import re
 def preprocess(text):
 
     # \n \t 제거
-    text = re.sub('[\n\t]', ' ', text)
+    text = re.sub('[\s]', ' ', text)
+
+    text = re.sub("[^가-힣ㄱ-ㅎㅏ-ㅣ\\s0-9a-zA-Z]", " ", text)
+
+    text = re.sub("[ㄱ-ㅎㅏ-ㅣ]+", "", text)
+
+    text = " ".join(text.split())
+
 
     # HTML 태그 제거
     text = re.sub(r"<[^>]+>\s+(?=<)|<[^>]+>", "", text).strip()
