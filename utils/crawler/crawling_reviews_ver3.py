@@ -11,7 +11,8 @@ import csv
 from datetime import datetime
 from pytz import timezone
 from tqdm import tqdm
-from preprocessing import preprocess
+from preprocessing.text_preprocessing import preprocess
+from preprocessing.text_hanspell import spell_check
 
 def get_headers(
     key: str,
@@ -71,6 +72,12 @@ class Coupang:
                 with rq.Session() as session:
                     page_data, review_counter = self.fetch(url=url_to_fetch, session=session, review_counter=review_counter, prod_name=prod_name)
                     result.append(page_data)
+
+
+        # review_content spell_check 처리
+        for page_data in result:
+            for review in page_data:
+                review['review_content'] = spell_check(review['review_content'])
 
         return result
 
@@ -141,11 +148,10 @@ class Coupang:
 
                 # 리뷰 내용
                 review_content = articles[idx].select_one('div.sdp-review__article__list__review > div')
-                if review_content == None :
+                if review_content is None:
                     review_content = ''
                 else:
-                    review_content = re.sub('[\n\t]','',review_content.text.strip())
-                    review_content = preprocess(review_content)
+                    review_content = preprocess(review_content.text.strip())
 
                 if len(review_content) < 50:
                     continue
@@ -263,13 +269,10 @@ class CSV:
     @staticmethod
     def save_file()-> None:
 
-        product_name = '품목30개'
+        file_name = 'product_list_20230707_155551'
 
-        file_path = f"./product_{product_name}.csv"
+        file_path = f"./{file_name}.csv"
         url_list, prod_names, search_names = load_urls(file_path)
-        print(len(url_list))
-        print(len(prod_names))
-        print(len(search_names))
 
         # 크롤링 결과
         results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list, prod_names)
@@ -280,7 +283,7 @@ class CSV:
         now = datetime.now(timezone('Asia/Seoul'))
         # 파일 이름
         # csv_file = f'../reviews/{product_name}_{now.strftime("%y%m%d_%H")}.csv'
-        csv_file = f'./review_{product_name}_last.csv'
+        csv_file = f'./review_{file_name}.csv'
 
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
@@ -294,5 +297,5 @@ class CSV:
 
 if __name__ == '__main__':
 
-    # OpenPyXL.save_file()
     CSV.save_file()
+    print("크롤링 완료!")

@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from data.search_list import search_products_list
 from tqdm import tqdm
 
+
 def crawling_products(search_list):
     '''
     리스트의 데이터를 크롤링하기
@@ -22,7 +23,6 @@ def crawling_products(search_list):
     for search_dict in tqdm(search_list, total=total_size):
         for search_name in search_list[search_dict]:
             print(search_name)
-
 
             options = Options()
             options.add_argument("--window-size=300,100")  # 원하는 창 크기를 지정할 수 있습니다.
@@ -135,5 +135,7 @@ if __name__ == '__main__':
     # 검색할 키워드 가져오기
     search_list = search_products_list()
     print(search_list)
+    # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
+    # search_list = {'음식': ['떡볶이']}
 
     crawling_products(search_list)

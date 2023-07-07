@@ -3,6 +3,10 @@ import re
 
 
 def preprocess(text):
+
+    # \n \t 제거
+    text = re.sub('[\n\t]', ' ', text)
+
     # HTML 태그 제거
     text = re.sub(r"<[^>]+>\s+(?=<)|<[^>]+>", "", text).strip()
 
