@@ -129,7 +129,7 @@ def read_reviews(prod_name: str):
 @app.get("/reviews/all")
 def read_reviews():
     '''
-    제품명으로 리뷰 검색 API
+    리뷰 전부 가져오기
     :param prod_name:
     :return:
     '''

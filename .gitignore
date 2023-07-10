@@ -173,3 +173,6 @@ outputs/
 wandb/
 encoders/
 config/
+*.ini
+
+!utils/crawler/json/headers.json
