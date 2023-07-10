@@ -31,7 +31,7 @@ def preprocess(text):
     text = re.sub(r"pic\.(\w+\.)+\S*", "", text).strip()
 
     # 특수 문자 제거
-    text = re.sub(r"[^\w\s…]", "", text)
+    text = re.sub(r"[^\w\s\.…]", "", text)
 
     # 문제를 일으킬 수 있는 문자 제거
     bad_chars = {"\u200b": "", "…": " ... ", "\ufeff": ""}
