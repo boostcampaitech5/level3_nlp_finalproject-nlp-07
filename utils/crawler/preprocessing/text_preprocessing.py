@@ -1,21 +1,21 @@
-from soynlp.normalizer import *
 import re
-
 
 def preprocess(text):
 
     # \n \t 제거
-    text = re.sub('[\s]', ' ', text)
+    text = re.sub('[\s]', " ", text)
 
-    text = re.sub("[^가-힣ㄱ-ㅎㅏ-ㅣ\\s0-9a-zA-Z]", " ", text)
-
-    text = re.sub("[ㄱ-ㅎㅏ-ㅣ]+", "", text)
+    text = re.sub("[^가-힣ㄱ-ㅎㅏ-ㅣ\\s0-9a-zA-Z\.]", " ", text)
 
     text = " ".join(text.split())
 
 
     # HTML 태그 제거
     text = re.sub(r"<[^>]+>\s+(?=<)|<[^>]+>", "", text).strip()
+
+    # HTML 태그 내의 온점을 제외한 모든 문자 제거
+    text = re.sub(r"<[^>.]+>\s+(?=<)|<[^>.]+>", "", text).strip()
+
 
     # 이메일 제거
     text = re.sub(r"[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", "", text).strip()
@@ -80,9 +80,10 @@ def preprocess(text):
     for p in punct_mapping:
         text = text.replace(p, punct_mapping[p])
     text = text.strip()
-
-    # 연속 공백 제거
+    #
+    # # 연속 공백 제거
     text = re.sub(r"\s+", " ", text).strip()
 
     return text
+
 
