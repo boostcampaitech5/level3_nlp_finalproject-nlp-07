@@ -11,15 +11,20 @@ import csv
 from datetime import datetime
 from pytz import timezone
 from tqdm import tqdm
-from preprocessing.text_preprocessing import preprocess
-from preprocessing.text_hanspell import spell_check
+from utils.crawler.preprocessing.text_preprocessing import preprocess
+from utils.crawler.preprocessing.text_hanspell import spell_check
+from pathlib import Path
+
 
 def get_headers(
     key: str,
     default_value: Optional[str] = None
     )-> Dict[str,Dict[str,str]]:
+
+
     """ Get Headers """
-    JSON_FILE : str = './json/headers.json'
+    # JSON_FILE : str = './json/headers.json'
+    JSON_FILE = Path(__file__).resolve().parent / 'json' / 'headers.json'
 
     with open(JSON_FILE,'r',encoding='UTF-8') as file:
         headers : Dict[str,Dict[str,str]] = json.loads(file.read())
@@ -278,9 +283,10 @@ class CSV:
         # 파일에 쓸 데이터 준비
         csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt', 'top100_yn']
         # 서울 시간
-        now = datetime.now(timezone('Asia/Seoul'))
+        return_file_name = f'review_{file_name}'
+
         # 파일 이름
-        csv_file = f'./review_{file_name}.csv'
+        csv_file = f'./{return_file_name}.csv'
 
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
@@ -290,6 +296,8 @@ class CSV:
                     writer.writerow(item)
 
         print(f'파일 저장완료!\n\n{csv_file}')
+
+        return return_file_name
 
 
 if __name__ == '__main__':

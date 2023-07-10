@@ -1,11 +1,11 @@
 import pandas as pd
 from selenium.webdriver.common.by import By
-from data.search_list import search_products_list
+
 import datetime
 from pytz import timezone
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from data.search_list import search_products_list
+from utils.crawler.data.search_list import search_products_list
 from tqdm import tqdm
 
 
@@ -20,6 +20,8 @@ def crawling_products(search_list):
     name_list = []
     total_size = sum(len(v) for v in search_list.values())
 
+    rank_list = ['number no-1 ', 'number no-2 ', 'number no-3 ', 'number no-4 ', 'number no-5 ', 'number no-6 ',
+                 'number no-7 ', 'number no-8 ', 'number no-9 ', 'number no-10 ']
 
     for search_dict in tqdm(search_list, total=total_size):
         for search_name in search_list[search_dict]:
@@ -40,12 +42,11 @@ def crawling_products(search_list):
             for li in lis:
                 try:
 
-                    if li.find_element(By.CLASS_NAME, 'number').get_attribute('class') != f'number no-{cnt+1} ':
+                    if li.find_element(By.CLASS_NAME, 'number').get_attribute('class') not in rank_list:
                         continue
 
                     top_cnt = li.find_element(By.CLASS_NAME, 'number').get_attribute('class')
                     # # print(top_cnt)
-
 
                     # 제품명
                     name = li.find_element(By.CLASS_NAME, 'name').text
@@ -57,7 +58,8 @@ def crawling_products(search_list):
                     name_list.append(name)
 
                     # 제품 고유번호
-                    unique_product_id = li.find_element(By.CLASS_NAME, 'search-product-link').get_attribute('data-product-id')
+                    unique_product_id = li.find_element(By.CLASS_NAME, 'search-product-link').get_attribute(
+                        'data-product-id')
 
                     # 가격
                     price = li.find_element(By.CLASS_NAME, 'price-value').text
@@ -122,7 +124,7 @@ def crawling_products(search_list):
                     data.append([search_name, unique_product_id, top_cnt, name, price, review_cnt, rating, ad_yn, url])
                     cnt += 1
 
-                    if cnt == 10:
+                    if cnt >= 20:
                         break
 
                 except Exception as e:
@@ -132,12 +134,19 @@ def crawling_products(search_list):
             driver.quit()
 
     # Convert list of lists into dataframe
-    df_output = pd.DataFrame(data, columns=['search_name', 'unique_product_id', 'top_cnt', 'name', 'price', 'review_cnt', 'rating', 'ad_yn', 'URL'])
+    df_output = pd.DataFrame(data,
+                             columns=['search_name', 'unique_product_id', 'top_cnt', 'name', 'price', 'review_cnt',
+                                      'rating', 'ad_yn', 'URL'])
 
     # time
     KST = datetime.datetime.now(timezone('Asia/Seoul')).strftime("%Y%m%d_%H%M%S")
+
+    filename = f"product_list_{KST}"
     # Write dataframe to CSV
-    df_output.to_csv(f"product_list_{KST}.csv", index=False)
+    df_output.to_csv(f'{filename}.csv', index=False)
+
+    # Return filename as well
+    return filename
 
 
 if __name__ == '__main__':
@@ -145,6 +154,6 @@ if __name__ == '__main__':
     search_list = search_products_list()
     print(search_list)
     # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
-    # search_list = {'음식': ['떡볶이']}
+    search_list = {'음식': ['감']}
 
     crawling_products(search_list)
