@@ -20,9 +20,10 @@ def crawling_products(search_list):
     name_list = []
     total_size = sum(len(v) for v in search_list.values())
 
+
     for search_dict in tqdm(search_list, total=total_size):
         for search_name in search_list[search_dict]:
-            print(search_name)
+            # print(search_name)
 
             options = Options()
             options.add_argument("--window-size=300,100")  # 원하는 창 크기를 지정할 수 있습니다.
@@ -39,6 +40,13 @@ def crawling_products(search_list):
             for li in lis:
                 try:
 
+                    if li.find_element(By.CLASS_NAME, 'number').get_attribute('class') != f'number no-{cnt+1} ':
+                        continue
+
+                    top_cnt = li.find_element(By.CLASS_NAME, 'number').get_attribute('class')
+                    # # print(top_cnt)
+
+
                     # 제품명
                     name = li.find_element(By.CLASS_NAME, 'name').text
                     name = name.replace('\"', '')  # 쉼표 제거
@@ -49,7 +57,7 @@ def crawling_products(search_list):
                     name_list.append(name)
 
                     # 제품 고유번호
-                    # unique_product_id = li.find_element(By.CLASS_NAME, 'search-product').get_attribute('data-product-id')
+                    unique_product_id = li.find_element(By.CLASS_NAME, 'search-product-link').get_attribute('data-product-id')
 
                     # 가격
                     price = li.find_element(By.CLASS_NAME, 'price-value').text
@@ -111,19 +119,20 @@ def crawling_products(search_list):
                     if rating <= 3.0:
                         continue
 
-                    data.append([search_name, name, price, review_cnt, rating, ad_yn, url])
+                    data.append([search_name, unique_product_id, top_cnt, name, price, review_cnt, rating, ad_yn, url])
                     cnt += 1
 
                     if cnt == 10:
                         break
 
                 except Exception as e:
+                    # print(e)
                     pass
 
             driver.quit()
 
     # Convert list of lists into dataframe
-    df_output = pd.DataFrame(data, columns=['search_name', 'name', 'price', 'review_cnt', 'rating', 'ad_yn', 'URL'])
+    df_output = pd.DataFrame(data, columns=['search_name', 'unique_product_id', 'top_cnt', 'name', 'price', 'review_cnt', 'rating', 'ad_yn', 'URL'])
 
     # time
     KST = datetime.datetime.now(timezone('Asia/Seoul')).strftime("%Y%m%d_%H%M%S")
