@@ -10,12 +10,16 @@ import json
 import csv
 from datetime import datetime
 from pytz import timezone
+from tqdm import tqdm
+from preprocessing.text_preprocessing import preprocess
+from preprocessing.text_hanspell import spell_check
+
 def get_headers(
     key: str,
     default_value: Optional[str] = None
     )-> Dict[str,Dict[str,str]]:
     """ Get Headers """
-    JSON_FILE : str = 'json/headers.json'
+    JSON_FILE : str = './json/headers.json'
 
     with open(JSON_FILE,'r',encoding='UTF-8') as file:
         headers : Dict[str,Dict[str,str]] = json.loads(file.read())
@@ -28,6 +32,9 @@ def get_headers(
         raise EnvironmentError(f'Set the {key}')
 
 class Coupang:
+
+    MAX_REVIEWS_PER_URL = 20  # 각 URL당 최대 리뷰 개수
+
     @staticmethod
     def get_product_code(url: str)-> str:
         """ 입력받은 URL 주소의 PRODUCT CODE 추출하는 메소드 """
@@ -37,27 +44,44 @@ class Coupang:
     def __init__(self)-> None:
         self.__headers : Dict[str,str] = get_headers(key='headers')
 
-    def main(self, url_list: List[str]) -> List[List[Dict[str, Union[str, int]]]]:
+    def main(self, url_list: List[str], prod_names: List[str]) -> List[List[Dict[str, Union[str, int]]]]:
         # 각 URL의 첫 페이지에서 리뷰를 가져옴
         result = []
-        for URL in url_list:
+        idx = 0
+        for URL in tqdm(url_list):
+
             # URL의 Product Code 추출
             prod_code: str = self.get_product_code(url=URL)
+            review_counter = 0  # 각 URL별로 카운터 초기화
 
-            for page in range(1, 30):
+            review_counter = 0
+
+            prod_name = prod_names[idx]
+            idx += 1
+
+            for page in range(1, 100):
                 # URL 주소 재가공
                 url_to_fetch = f'https://www.coupang.com/vp/product/reviews?productId={prod_code}&page={page}&size=10&sortBy=ORDER_SCORE_ASC&ratings=&q=&viRoleCode=3&ratingSummary=true'
+
+                if review_counter >= self.MAX_REVIEWS_PER_URL:
+                    break
 
                 # __headers에 referer 키 추가
                 self.__headers['referer'] = URL
 
                 with rq.Session() as session:
-                    page_data = self.fetch(url=url_to_fetch, session=session)
+                    page_data, review_counter = self.fetch(url=url_to_fetch, session=session, review_counter=review_counter, prod_name=prod_name)
                     result.append(page_data)
+
+
+        # review_content spell_check 처리
+        for page_data in result:
+            for review in page_data:
+                review['review_content'] = spell_check(review['review_content'])
 
         return result
 
-    def fetch(self,url:str,session)-> List[Dict[str,Union[str,int]]]:
+    def fetch(self,url:str,session, review_counter, prod_name:str)-> List[Dict[str,Union[str,int]]]:
         save_data : List[Dict[str,Union[str,int]]] = list()
 
         with session.get(url=url,headers=self.__headers) as response :
@@ -67,7 +91,23 @@ class Coupang:
             # Article Boxes
             article_lenth = len(soup.select('article.sdp-review__article__list'))
 
+            # brand_name = soup.find_all('a', 'prod-brand-name')[0].text
+            # print(brand_name)
+
+            # # 브랜드명
+            # brand_name = driver.find_element(By.CLASS_NAME, 'prod-sale-vendor-name').text
+
+            # # 브랜드점수
+            # brand_rating = driver.find_element(By.CLASS_NAME, 'seller-rating with-company').text
+
+
             for idx in range(article_lenth):
+
+                # 이미 충분한 리뷰를 수집한 경우 루프 종료
+                if review_counter >= self.MAX_REVIEWS_PER_URL:
+                    break
+
+
                 dict_data : Dict[str,Union[str,int]] = dict()
                 articles = soup.select('article.sdp-review__article__list')
 
@@ -78,6 +118,13 @@ class Coupang:
                 else:
                     user_name = user_name.text.strip()
 
+                top100_yn = articles[idx].select_one('img.sdp-review__article__list__info__top-badge')
+                if top100_yn == None or top100_yn.text == '':
+                    top100_yn = 'N'
+                else:
+                    top100_yn = 'Y'
+                # print(top100_yn)
+
                 # 평점
                 rating = articles[idx].select_one('div.sdp-review__article__list__info__product-info__star-orange')
                 if rating == None:
@@ -86,11 +133,11 @@ class Coupang:
                     rating = int(rating.attrs['data-rating'])
 
                 # 구매자 상품명
-                prod_name = articles[idx].select_one('div.sdp-review__article__list__info__product-info__name')
-                if prod_name == None or prod_name.text == '':
-                    prod_name = '-'
-                else:
-                    prod_name = prod_name.text.strip()
+                # prod_name = articles[idx].select_one('div.sdp-review__article__list__info__product-info__name')
+                # if prod_name == None or prod_name.text == '':
+                #     prod_name = '-'
+                # else:
+                #     prod_name = prod_name.text.strip()
 
                 # 헤드라인(타이틀)
                 headline = articles[idx].select_one('div.sdp-review__article__list__headline')
@@ -101,10 +148,16 @@ class Coupang:
 
                 # 리뷰 내용
                 review_content = articles[idx].select_one('div.sdp-review__article__list__review > div')
-                if review_content == None :
+                if review_content is None:
                     review_content = ''
                 else:
-                    review_content = re.sub('[\n\t]','',review_content.text.strip())
+                    review_content = preprocess(review_content.text.strip())
+
+                if len(review_content) < 50:
+                    continue
+                if len(review_content) > 500:
+                    continue
+
 
                 # 맛 만족도
                 answer = articles[idx].select_one('span.sdp-review__article__list__survey__row__answer')
@@ -113,21 +166,50 @@ class Coupang:
                 else:
                     answer = answer.text.strip()
 
+                # divs = soup.find_all('div', class_='sdp-review__article__list__survey__row')
+                # suryey_list = []
+                # # 각 div 요소에 대한 정보를 출력합니다
+                # for div in divs:
+                #     question = div.find('span', class_='sdp-review__article__list__survey__row__question').text
+                #     answer = div.find('span', class_='sdp-review__article__list__survey__row__answer').text
+                #     # print(f"Question: {question}, Answer: {answer}")
+                #     mix_text = f'<{question}>{answer}'
+                #     suryey_list.append(mix_text)
+                # survey = ''.join(suryey_list)
+                # print(suryey)
+
+                helped_cnt = articles[idx].select_one('.js_reviewArticleHelpfulContainer')
+                if helped_cnt == None or helped_cnt.text == '':
+                    helped_cnt = 0
+                else:
+                    help_cnt_str = helped_cnt.text.strip().split('명에게 도움 됨')[0]  # Split the string and get the first part
+                    help_cnt_str = help_cnt_str.replace(',', '')  # Remove the comma
+                    helped_cnt = int(help_cnt_str)  # Then convert it to integer
+                # print(help_cnt)
+
+                if helped_cnt < 1:
+                    continue
+
+
 
                 # 원본 URL
-                dict_data['url'] = url
                 dict_data['prod_name'] = prod_name
                 dict_data['user_name'] = user_name
                 dict_data['rating'] = rating
                 dict_data['headline'] = headline
                 dict_data['review_content'] = review_content
                 dict_data['answer'] = answer
+                dict_data['helped_cnt'] = helped_cnt
+                # dict_data['survey'] = survey
+                dict_data['top100_yn'] = top100_yn
+
+                review_counter += 1
 
                 save_data.append(dict_data)
 
-                print(dict_data , '\n')
+                # print(dict_data , '\n')
 
-            return save_data
+            return save_data, review_counter
 
     def input_review_url(self)-> str:
         while True:
@@ -160,71 +242,45 @@ class Coupang:
 
             return int(page_count)
         
+# def load_urls(file_path: str) -> List[str]:
+#     # Load URLs from a CSV file
+#     with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+#         reader = csv.DictReader(csvfile)
+#         urls = [row['URL'] for row in reader]
+#         prod_names = [row['name'] for row in reader]
+#         search_names = [row['search_name'] for row in reader]
+#     return urls, prod_names, search_names
+
 def load_urls(file_path: str) -> List[str]:
-    # Load URLs from a CSV file
+    urls = []
+    prod_names = []
+    search_names = []
+
     with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        urls = [row['URL'] for row in reader]
-    return urls
+        for row in reader:
+            urls.append(row['URL'])
+            prod_names.append(row['name'])
+            search_names.append(row['search_name'])
 
-
-
-
-
-class OpenPyXL:
-    @staticmethod
-    def save_file()-> None:
-        # 크롤링 결과
-        results : List[List[Dict[str,Union[str,int]]]] = Coupang().main()
-
-        wb = Workbook()
-        ws = wb.active
-        ws.append(['상품명','구매자 이름','구매자 평점','리뷰 제목','리뷰 내용','맛 만족도'])
-
-        row = 2
-
-        for x in results:
-            for result in x :
-                ws[f'A{row}'] = result['prod_name']
-                ws[f'B{row}'] = result['user_name']
-                ws[f'C{row}'] = result['rating']
-                ws[f'D{row}'] = result['headline']
-                ws[f'E{row}'] = result['review_content']
-                ws[f'F{row}'] = result['answer']
-
-                row += 1
-
-        savePath : str = os.path.abspath('쿠팡-상품리뷰-크롤링')
-        fileName : str = results[0][0]['prod_name'] + '.xlsx'
-
-        if not os.path.exists(savePath):
-            os.mkdir(savePath)
-
-        wb.save(os.path.join(savePath,fileName))
-        wb.close()
-
-        print(f'파일 저장완료!\n\n{os.path.join(savePath,fileName)}')
-
+    return urls, prod_names, search_names
 
 class CSV:
     @staticmethod
-    def save_file()-> None:
+    def save_file(file_name)-> None:
 
-        product_name = '떡볶이'
-
-        file_path = f"./data/products/{product_name}.csv"
-        url_list = load_urls(file_path)
+        file_path = f"./{file_name}.csv"
+        url_list, prod_names, search_names = load_urls(file_path)
 
         # 크롤링 결과
-        results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list)
+        results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list, prod_names)
 
         # 파일에 쓸 데이터 준비
-        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'url']
+        csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt', 'top100_yn']
         # 서울 시간
         now = datetime.now(timezone('Asia/Seoul'))
         # 파일 이름
-        # csv_file = f'../reviews/{product_name}_{now.strftime("%y%m%d_%H")}.csv'
-        csv_file = f'./data/reviews/{product_name}리뷰.csv'
+        csv_file = f'./review_{file_name}.csv'
 
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
@@ -238,5 +294,7 @@ class CSV:
 
 if __name__ == '__main__':
 
-    # OpenPyXL.save_file()
-    CSV.save_file()
+    file_name = 'product_list_20230710_094727'
+
+    CSV.save_file(file_name)
+    print("크롤링 완료!")
