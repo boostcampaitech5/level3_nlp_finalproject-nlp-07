@@ -28,6 +28,7 @@ def check_products_table(cursor, table_name):
                 `positive_reviews_cnt` int COMMENT '긍정 리뷰 수',
                 `negative_reviews_cnt` int COMMENT '부정 리뷰 수',
                 `summary`              text COMMENT '제품 요약(모델링)',
+                `keywords`             text COMMENT '키워드 추출(모델링)',
                 PRIMARY KEY (`product_id`)
             ) COMMENT = '제품 정보 테이블'
         """)
