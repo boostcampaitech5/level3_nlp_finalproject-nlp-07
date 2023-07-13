@@ -1,7 +1,10 @@
 from fastapi import FastAPI
-import re
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
-import torch
+import os
+import openai
+from pydantic import BaseModel
+import configparser
+from typing import List, Union, Optional, Dict, Any
+
 
 app = FastAPI()
 
