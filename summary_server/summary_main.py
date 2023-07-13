@@ -79,14 +79,48 @@ def generate_summary(text):
     summary = clean_text(summary, type="post")
     return summary
     
+def split_front(text: str, split_length: int = 500, stride: int = 10):
+    """공백 제외 words 만큼 text 앞 부분을 분리
+        
+    """
+    char_pos = [] # 공백이 아닌 글자의 위치
+    for idx, val in enumerate(text):
+        if val in [" ", "\n"]: continue
+        char_pos.append(idx)
+
+    # stride 길이가 앞 부분 길이보다 크면 기본값 10 대신 사용
+    if stride >= split_length:
+        stride = 10
+    
+    front_end = char_pos[split_length]
+    back_start = char_pos[split_length - stride]
+    front = text[:front_end]
+    back = text[back_start:]
+    
+    return front, back
+    
 
 @app.post("/summary")
 def get_review_summary(reviews: List[str]):
     input_text = ""
     summary = ""
     
+    split_reviews = []
+    max_length = 500 # 공백 미포함 최대 글자수
+    stride = 10
+    
+    # 길이 제한 맞출 때까지 자르기
     for review in reviews:
-        if get_no_space_length(input_text) + get_no_space_length(review) > 500:
+        review = clean_text(review, type="pre")
+        
+        while get_no_space_length(review) > max_length:
+            front, review = split_front(review, max_length, stride)
+            split_reviews.append(front)
+
+        split_reviews.append(review)
+    
+    for review in split_reviews:
+        if get_no_space_length(input_text) + get_no_space_length(review) > max_length:
             result = generate_summary(input_text)
             summary = summary + " " + result
             input_text = ""
