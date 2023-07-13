@@ -6,6 +6,18 @@ import configparser
 import uvicorn
 from typing import List, Union, Optional, Dict, Any
 import aiomysql
+import sys
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
+from crawler.crawling_products_bs4 import crawling_products
+from crawler.crawling_reviews import CSV
+from db_scripts.csv2db import run_pipeline
+from pathlib import Path
+import pandas as pd
+
+
 
 app = FastAPI()
 
@@ -109,8 +121,40 @@ def read_reviews(prod_name: str):
 
     if len(result) == 0:
         conn.close()
-        return {"error": f"No product found for name: {prod_name}"}
+        # 크롤링 로직
+        # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
+        print(prod_name)
+        search_list = {'음식': [prod_name]}
 
+
+        product_file_name = crawling_products(search_list)
+
+        review_file_name = CSV.save_file(product_file_name)
+
+        version = 'immediately_crawling'
+
+        current_directory = Path(__file__).resolve().parent.parent.parent
+        print(current_directory)
+
+        product_csv_path = current_directory.joinpath("utils", "dp_api", f"{product_file_name}.csv")
+        review_csv_path = current_directory.joinpath("utils", "dp_api", f"{review_file_name}.csv")
+
+        product_csv_file = f"{product_csv_path}"
+        review_csv_file = f"{review_csv_path}"
+
+        run_pipeline(product_csv_file, review_csv_file, version)
+
+        # print csv filenames
+        print(os.path.basename(product_csv_file))
+        print(os.path.basename(review_csv_file))
+
+        review_df = pd.read_csv(review_csv_file)
+        r = review_df['review_content']
+        print(r)
+
+
+        return {"crawling_yn":"Y", "reviews":r}
+    
     reviews = []
     for row in result:
         reviews.append({
@@ -124,7 +168,7 @@ def read_reviews(prod_name: str):
         })
 
     conn.close()
-    return {"reviews": reviews}
+    return {"crawling_yn":"N", "reviews": reviews}
 
 @app.get("/reviews/all")
 def read_reviews():

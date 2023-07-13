@@ -52,6 +52,8 @@ def crawling_products(search_list):
 
         print(df)
 
+        return f"{search_item}_bs4"
+
 if __name__ == '__main__':
     search_list = {'노트북': ['감']}
     crawling_products(search_list)
