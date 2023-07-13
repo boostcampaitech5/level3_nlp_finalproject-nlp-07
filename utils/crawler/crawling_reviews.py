@@ -11,8 +11,8 @@ import csv
 from datetime import datetime
 from pytz import timezone
 from tqdm import tqdm
-from utils.crawler.preprocessing.text_preprocessing import preprocess
-from utils.crawler.preprocessing.text_hanspell import spell_check
+from preprocessing.text_preprocessing import preprocess
+from preprocessing.text_hanspell import spell_check
 from pathlib import Path
 
 
@@ -49,7 +49,7 @@ class Coupang:
     def __init__(self)-> None:
         self.__headers : Dict[str,str] = get_headers(key='headers')
 
-    def main(self, url_list: List[str], prod_names: List[str]) -> List[List[Dict[str, Union[str, int]]]]:
+    def main(self, url_list: List[str], prod_names: List[str], writer: csv.DictWriter) -> None:
         # 각 URL의 첫 페이지에서 리뷰를 가져옴
         result = []
         idx = 0
@@ -76,7 +76,13 @@ class Coupang:
 
                 with rq.Session() as session:
                     page_data, review_counter = self.fetch(url=url_to_fetch, session=session, review_counter=review_counter, prod_name=prod_name)
-                    result.append(page_data)
+                    # result.append(page_data)
+
+                    # review_content spell_check 처리 and write to CSV
+                    for review in page_data:
+                        review['review_content'] = spell_check(review['review_content'])
+                        writer.writerow(review)
+
 
 
         # review_content spell_check 처리
@@ -214,6 +220,9 @@ class Coupang:
 
                 # print(dict_data , '\n')
 
+                # Add delay
+                time.sleep(1)                 
+
             return save_data, review_counter
 
     def input_review_url(self)-> str:
@@ -278,7 +287,7 @@ class CSV:
         url_list, prod_names, search_names = load_urls(file_path)
 
         # 크롤링 결과
-        results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list, prod_names)
+        # results : List[List[Dict[str,Union[str,int]]]] = Coupang().main(url_list, prod_names)
 
         # 파일에 쓸 데이터 준비
         csv_columns = ['prod_name', 'user_name', 'rating', 'headline', 'review_content', 'answer', 'helped_cnt', 'top100_yn']
@@ -288,12 +297,17 @@ class CSV:
         # 파일 이름
         csv_file = f'./{return_file_name}.csv'
 
+        # with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
+        #     writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+        #     writer.writeheader()
+        #     for data in results:
+        #         for item in data:
+        #             writer.writerow(item)
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
-            for data in results:
-                for item in data:
-                    writer.writerow(item)
+            # 크롤링 결과
+            Coupang().main(url_list, prod_names, writer)        
 
         print(f'파일 저장완료!\n\n{csv_file}')
 
@@ -302,7 +316,7 @@ class CSV:
 
 if __name__ == '__main__':
 
-    file_name = 'product_list_20230710_094727'
+    file_name = 'concatenated_product_list2'
 
     CSV.save_file(file_name)
     print("크롤링 완료!")
