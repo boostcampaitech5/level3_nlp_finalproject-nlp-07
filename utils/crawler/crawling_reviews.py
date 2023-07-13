@@ -11,6 +11,16 @@ import csv
 from datetime import datetime
 from pytz import timezone
 from tqdm import tqdm
+
+import sys
+
+# Set your project path
+project_path = os.path.expanduser('~/level3_nlp_finalproject-nlp-07/utils/crawler')
+
+# Add the project path to the PYTHONPATH
+sys.path.append(project_path)
+
+
 from preprocessing.text_preprocessing import preprocess
 from preprocessing.text_hanspell import spell_check
 from pathlib import Path
