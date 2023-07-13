@@ -136,8 +136,8 @@ def read_reviews(prod_name: str):
         current_directory = Path(__file__).resolve().parent.parent.parent
         print(current_directory)
 
-        product_csv_path = current_directory.joinpath("utils", "dp_api", f"{product_file_name}.csv")
-        review_csv_path = current_directory.joinpath("utils", "dp_api", f"{review_file_name}.csv")
+        product_csv_path = current_directory.joinpath("utils", "db_api", f"{product_file_name}.csv")
+        review_csv_path = current_directory.joinpath("utils", "db_api", f"{review_file_name}.csv")
 
         product_csv_file = f"{product_csv_path}"
         review_csv_file = f"{review_csv_path}"
