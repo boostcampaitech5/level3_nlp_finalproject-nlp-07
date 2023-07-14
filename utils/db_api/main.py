@@ -89,7 +89,49 @@ def read_reviews(prod_name: str):
 
     if len(result) == 0:
         conn.close()
-        return {"error": f"No product found for name: {prod_name}"}
+        # 크롤링 로직
+        # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
+        print(prod_name)
+        search_list = {'음식': [prod_name]}
+
+
+        product_file_name = crawling_products(search_list)
+
+        review_file_name = CSV.save_file(product_file_name)
+
+        version = 'immediately_crawling'
+
+        current_directory = Path(__file__).resolve().parent.parent.parent
+        print(current_directory)
+
+        product_csv_path = current_directory.joinpath("utils", "db_api", f"{product_file_name}.csv")
+        review_csv_path = current_directory.joinpath("utils", "db_api", f"{review_file_name}.csv")
+
+        product_csv_file = f"{product_csv_path}"
+        review_csv_file = f"{review_csv_path}"
+
+        run_pipeline(product_csv_file, review_csv_file, version)
+
+        # print csv filenames
+        print(os.path.basename(product_csv_file))
+        print(os.path.basename(review_csv_file))
+
+        review_df = pd.read_csv(review_csv_file)
+
+        reviews = []
+        for row in result:
+            reviews.append({
+                "prod_id": row[1],
+                "prod_name": row[2],
+                "rating": row[3],
+                "title": row[4],
+                "context": row[5],
+                "answer": row[6],
+                "review_url": row[7]
+            })
+
+
+        return {"crawling_yn":"Y", "reviews":reviews}
 
     reviews = []
     for row in result:
@@ -149,11 +191,21 @@ def read_reviews(prod_name: str):
         print(os.path.basename(review_csv_file))
 
         review_df = pd.read_csv(review_csv_file)
-        r = review_df['review_content']
-        print(r)
+
+        reviews = []
+        for row in result:
+            reviews.append({
+                "prod_id": row[1],
+                "prod_name": row[2],
+                "rating": row[3],
+                "title": row[4],
+                "context": row[5],
+                "answer": row[6],
+                "review_url": row[7]
+            })
 
 
-        return {"crawling_yn":"Y", "reviews":r}
+        return {"crawling_yn":"Y", "reviews":reviews}
     
     reviews = []
     for row in result:
