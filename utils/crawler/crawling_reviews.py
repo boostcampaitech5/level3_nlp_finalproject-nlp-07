@@ -48,16 +48,16 @@ def get_headers(
 
 class Coupang:
 
-    MAX_REVIEWS_PER_URL = 20  # 각 URL당 최대 리뷰 개수
-
     @staticmethod
     def get_product_code(url: str)-> str:
         """ 입력받은 URL 주소의 PRODUCT CODE 추출하는 메소드 """
         prod_code : str = url.split('products/')[-1].split('?')[0]
         return prod_code
 
-    def __init__(self)-> None:
+    def __init__(self, max_reviews_per_url: int)-> None:
         self.__headers : Dict[str,str] = get_headers(key='headers')
+        self.MAX_REVIEWS_PER_URL = max_reviews_per_url
+
 
     def main(self, url_list: List[str], prod_names: List[str], writer: csv.DictWriter) -> None:
         # 각 URL의 첫 페이지에서 리뷰를 가져옴
@@ -291,7 +291,7 @@ def load_urls(file_path: str) -> List[str]:
 
 class CSV:
     @staticmethod
-    def save_file(file_name)-> None:
+    def save_file(file_name, max_reviews_per_url)-> None:
 
         file_path = f"./{file_name}.csv"
         url_list, prod_names, search_names = load_urls(file_path)
@@ -317,7 +317,7 @@ class CSV:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
             # 크롤링 결과
-            Coupang().main(url_list, prod_names, writer)        
+            Coupang(max_reviews_per_url).main(url_list, prod_names, writer)        
 
         print(f'파일 저장완료!\n\n{csv_file}')
 
@@ -328,5 +328,8 @@ if __name__ == '__main__':
 
     file_name = 'concatenated_product_list2'
 
-    CSV.save_file(file_name)
+    # CSV.save_file(file_name)
+    
+    max_reviews_per_url = 20  # 각 URL당 최대 리뷰 개수
+    CSV.save_file(file_name, max_reviews_per_url)
     print("크롤링 완료!")
