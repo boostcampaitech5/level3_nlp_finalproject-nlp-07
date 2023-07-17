@@ -3,8 +3,21 @@ from fastapi import FastAPI
 import re
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 import torch
+from starlette.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# 실행 : uvicorn summary_main:app --port 30007 --host 0.0.0.0
 
 MODEL = "boostcamp-5th-nlp07/koalpaca-polyglot-5.8b-summary-v1.0"
 
