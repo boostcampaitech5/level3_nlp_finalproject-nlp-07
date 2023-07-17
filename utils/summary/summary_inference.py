@@ -33,17 +33,15 @@ def build_text(keyword, review):
             "" + review.strip() + "\n\n"
             "### 답변:"
         )
+    elif args.format == "kullm":
+        instruction = f"다음의 {keyword}에 대한 리뷰를 특성 세부설명 형식으로 요약하세요."
+        
+        text = "아래는 작업을 설명하는 명령어와 추가 컨텍스트를 제공하는 입력이 짝을 이루는 예제입니다. 요청을 적절히 완료하는 응답을 작성하세요.\n\n### 명령어:\n{instruction}\n\n### 입력:\n{input}\n\n### 응답:\n".format(instruction=instruction, input=review)
 
     return text
 
 
 def inference(model, tokenizer, test_data: pd.DataFrame):
-    # MODEL = "models/0_e5" # 가장 결과 좋음
-    # MODEL = "models/koalpaca-ft_0-myFormat"
-    # MODEL = "models/0_noTag"
-    # MODEL = "models/e10"
-    # MODEL = "models/e5lr1/"
-
     model.eval()
 
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0)
@@ -108,7 +106,7 @@ def inference(model, tokenizer, test_data: pd.DataFrame):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, required=True)
-    parser.add_argument("--format", type=str, required=True, help="[my, koalpaca]")
+    parser.add_argument("--format", type=str, required=True, help="[my, koalpaca, kullm]")
     parser.add_argument("--test_file_path", type=str, required=True, help="[.csv]")
     parser.add_argument("--name", type=str, default="")
     args = parser.parse_args()
