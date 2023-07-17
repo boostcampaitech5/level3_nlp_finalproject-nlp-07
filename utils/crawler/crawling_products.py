@@ -114,12 +114,12 @@ def crawling_products(search_list):
                     if name == '':
                         continue
 
-                    # # 리뷰 50개 이하는 제외
-                    if review_cnt <= 50:
-                        continue
+                    # # # 리뷰 50개 이하는 제외
+                    # if review_cnt <= 50:
+                    #     continue
 
-                    if rating <= 3.0:
-                        continue
+                    # if rating <= 3.0:
+                    #     continue
 
                     data.append([search_name, unique_product_id, top_cnt, name, price, review_cnt, rating, ad_yn, url])
                     cnt += 1
