@@ -41,7 +41,7 @@
   - (5) 요약 모델 프롬프트를 제작할 때, `review` 외 다른 키를 사용한다면, `inference()` 코드 수정 필요
   - (6) **templates/** 폴더와 같은 디렉토리에서 `summary_evaluate.py` 파일을 실행
 - 평가 결과물
-```json
+```
 {
     "total": { // 전체 데이터셋에 대한 평가 결과
         "f2_penalty": 평균 (f2 점수 + 길이 페널티), 
@@ -60,6 +60,6 @@
             "log": keywords 탐색 결과, 존재하는 keywords 개수, keywords가 하나도 없는 문장 개수 및 리스트에 대한 로그, 
             "input": 요약할 리뷰 데이터, 
             "output": 생성한 요약문
-            }, ...]
+        }, ...]
 ```
 
