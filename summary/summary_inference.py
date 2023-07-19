@@ -1,8 +1,8 @@
 import torch
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
-import argparse
 from tqdm import tqdm
-from summary_utils import Prompter, clean_text
+from summary_utils import clean_text
+from prompter import Prompter
 import time
 
 def inference(model, tokenizer, dataset:list, prompt_template_name = "v1.0"):
