@@ -70,11 +70,13 @@ def extract(prompt):
     try:
         tmp = ast.literal_eval(respond)
         if tmp['조건'] == [] or tmp['조건'] == 0:
-            result = 0
+            #result = 0
+            raise HTTPException(status_code=500, detail="chatGPT_invalid-input")
         else:
             result = tmp
     except:
-        result = 0
+        #result = 0
+        raise HTTPException(status_code=500, detail="chatGPT_invalid-input")
     return result
 
 @app.post("/extract")
