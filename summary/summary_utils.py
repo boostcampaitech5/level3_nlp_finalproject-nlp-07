@@ -1,45 +1,35 @@
-from typing import Union
-
-
-def clean_text(sent, remove_tag = True):
-    """
-    특수 문자, 문장 부호, 조건 태그 제거
-    """
-    if remove_tag:
-        sent = re.sub("[^가-힣ㄱ-ㅎㅏ-ㅣ\\s0-9a-zA-Z]", " ", sent)
-    else:
-        sent = re.sub("[^가-힣ㄱ-ㅎㅏ-ㅣ\\s0-9a-zA-Z<>]", " ", sent)
-    sent = re.sub("[ㄱ-ㅎㅏ-ㅣ]+", "", sent) # 초성체 제거
-    sent = " ".join(sent.split()) # 공백 최소화
-    sent = sent.strip()
-    return sent
-
-def remove_tag(text):
-    text = re.sub(" <[^>]+>", ".", text) # 태그 마침표로 변환
-    text = re.sub("<[^>]+>", "", text) # 맨 앞 태그 제거
-    text = " ".join(text.split())
-    text = text.strip()
-    return text
-
-def split_into_list(text):
-    text = remove_tag(text)
-    return [t.strip() for t in text.split(".")]
+from typing import Union, List
 import re
 import os
+import errno
 from datetime import datetime
 import json
-import torch
 from pytz import timezone
 
-def save_evaluation(evaluation, dir_name = "test_result", name = "", model_name = "", now = ""):
+
+def save_evaluation(
+    evaluation: dict,
+    dir_name: str = "test_result",
+    name: str = "",
+    now: str = "",
+) -> None:
+    """`evaluation`을 json 파일에 저장
+
+    파일 경로: {dir_name}/{name}_{model_name}_{now}.json
+
+    Args:
+        evaluation (dict): `evaluate()` 반환 값.\n
+        dir_name (str, optional): 파일 저장 디렉토리 이름.\n
+        name (str, optional): 파일 이름.\n
+        model_name (str, optional): 사용한 모델 경로.\n
+        now (str, optional): 평가 결과가 생성된 시각. 주어지지 않으면 함수 호출 당시 시각 사용.\n
+    """
     if len(now) == 0:
         now = datetime.now(timezone("Asia/Seoul")).strftime("%m%d%H%M")
-    
+
     file_name = ""
     if len(name) > 0:
         file_name += name + "_"
-    if len(model_name) > 0:
-        file_name += model_name.strip().split("/")[-1] + "_"
     file_name += now + ".json"
 
     os.makedirs(dir_name, exist_ok=True)

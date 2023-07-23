@@ -4,6 +4,7 @@ from kiwipiepy.utils import Stopwords
 
 from utils.preprocess import clean_text, split_into_list
 
+
 class KeywordExtractor:
     """키워드를 추출하는 클래스. `get_keywords()` 사용."""
 
