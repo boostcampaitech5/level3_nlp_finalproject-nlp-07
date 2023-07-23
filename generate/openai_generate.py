@@ -150,38 +150,32 @@ if __name__ == "__main__":
     ]
     
     error_cnt = 0
-    cont_error_cnt = 0
+    wait_sec = 1 # 에러가 연속되면 기다리는 시간 증가
     while True:
         try:
             ret_code = main(INPUT_DATA_PATH, OUTPUT_DATA_PATHS)
             if ret_code == 0: break
-            cont_error_cnt = 0
+            wait_sec = 1
         except (
-            openai.error.RateLimitError,
             openai.error.AuthenticationError,
             openai.error.InvalidRequestError
             )as e:
-            print(f"Error:{e}")
+            print(f"OpenAI API Error: {e}")
             print("Terminate.")
             break
+        except(
+            openai.error.ServiceUnavailableError,
+            openai.error.APIError,
+            openai.error.Timeout,
+            openai.error.RateLimitError
+        ) as e: # wait and continue
+            error_cnt += 1
+            print(f"OpenAI API Error: {e}")
+            print(f"{error_cnt}th error! Trying again.")
+            time.sleep(wait_sec)
+            wait_sec += 1
         except Exception as e:
-            error_cnt += 1
-            cont_error_cnt += 1
-            print(f"Error: {e}")
-
-            if cont_error_cnt >= 3:
-                print(f"{cont_error_cnt} continuous errors.\nTerminate.")
-                break
-            else:
-                print(f"{error_cnt}th error! Trying again.")
-        except:
-            error_cnt += 1
-            cont_error_cnt += 1
-            print(f"Error: {e}")
-            
-            if cont_error_cnt >= 3:
-                print(f"{cont_error_cnt} continuous errors.\nTerminate.")
-                break
-            else: 
-                print(f"{error_cnt}th error! Trying again.")
+            print("Error:", e)
+            print("Terminate.")
+            break
         
