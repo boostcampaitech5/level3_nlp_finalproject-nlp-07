@@ -26,26 +26,33 @@ pip install kiwipiepy
 
 ### 사용법
 
+필터링한 텍스트를 미리 전처리하되, 마침표(`.`)는 문장 분리에 도움을 주므로 전처리 하지 않는 것을 추천합니다. 필터링 결과는 각 문장 뒤에 마침표가 붙여서 나옵니다.
+
 ``` python
 from review_filter import ReviewFilter
+from utils.preprocess import clean_text, get_no_space_length
+
+text = "필터링 할 문자열"
+text = clean_text(text, remove_dot=False)
 
 filter = ReviewFilter()
-text = "필터링 할 문자열"
-filtered_text = filter.filter_text(text, verbose=True)
+
+filtered_text = filter.filter_text(text, verbose=True, join=True)
 print(filtered_text)
-print(filter.get_filter_score(len(text), len(filtered_text), verbose=True))
+print(filter.get_filter_score(get_no_space_length(text), get_no_space_length(filtered_text), verbose=True))
 ```
 
 ### 필터링 룰
 
 1. kiwipiepy의 `Kiwi.split_into_sents()` 로 각 리뷰를 문장으로 분리
-2. 문장 길이 MIN_LEN ~ MAX_LEN 자 외 필터링 (디폴트 10, 200)
-3. 정규표현식을 이용해서 특정 단어가 들어간 문장 필터링
+2. 중복된 문장이 있으면 처음 것 제외 필터링
+3. 문장 길이 MIN_LEN ~ MAX_LEN 자 외 필터링 (디폴트 10, 200)
+4. 정규표현식을 이용해서 특정 단어가 들어간 문장 필터링
 ```python
 del_patterns = [
-    "조리", "해동", "요리", '추가','[센중약]불', "넣", "헹", # 레시피
+    "조리", "해동", "요리", '추가','[센중약]불', "넣", "헹", "방법", # 레시피
     '작성', '도움', '내돈내산','리뷰','안녕','보답','감사','눌러','좋은 하루', "후기", # 리뷰 끝맺음
-    "(유통)?기한", 
+    "(유통)?기한", "보관",
     "(재)?구매", "(재)?구입",
     "배달", "배송", "로켓", "프레시",'주문',
 ]
