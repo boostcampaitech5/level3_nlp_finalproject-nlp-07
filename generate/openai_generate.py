@@ -133,14 +133,6 @@ def main(input_data_path: str, output_data_paths: List[str]):
 
 if __name__ == "__main__":
     
-    # 리뷰 데이터 들어있는 파일 경로
-    # INPUT_DATA_PATH = "/opt/ml/input/data/v3.5/summary_v3.5_2000.json"
-    # # 중간 결과물 저장할 파일 경로
-    # OUTPUT_DATA_PATHS = [
-    #     "/opt/ml/input/data/v3.5/prompt_2000_0.json",
-    #     "/opt/ml/input/data/v3.5/prompt_2000_1.json",
-    # ]
-    
     # # 리뷰 데이터 들어있는 파일 경로
     INPUT_DATA_PATH = "/opt/ml/input/data/v3.5/summary_v3.5_1500.json"
     # 중간 결과물 저장할 파일 경로
