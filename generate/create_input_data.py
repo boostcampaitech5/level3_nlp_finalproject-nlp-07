@@ -100,7 +100,6 @@ def initialize_summary_dataset(df: pd.DataFrame, min_tokens = 500, max_tokens = 
 if __name__ == "__main__":
     
     from filtering.review_filter import ReviewFilter
-    from summary.summary_utils import clean_text
     filter = ReviewFilter()
 
     # 전처리 및 필터링 된 리뷰 DB 테이블 데이터.  각 리뷰 문장은 마침표로 끝나야 함.
