@@ -7,9 +7,13 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 from summary_scores import get_keyword_score, get_length_penalty, get_sts_score
-from summary_inference import inference
 from keyword_extractor import KeywordExtractor
 from summary_utils import save_evaluation
+
+# from summary_scores import get_keyword_score, get_length_penalty, get_sts_score
+# from summary_inference import inference
+# from keyword_extractor import KeywordExtractor
+# from summary_utils import save_evaluation
 
 
 def evaluate(
@@ -38,7 +42,7 @@ def evaluate(
         times = [-1.0 for _ in preds]
 
     total_time = 0.0  # 리뷰 별 시간 평균
-    total_keyword_scores = defaultdict(int)
+    total_keyword_scores = defaultdict(lambda: 0.0)
     total_sts_score = 0.0
 
     pred_len = len(preds)
@@ -100,10 +104,13 @@ def evaluate(
 
 
 if __name__ == "__main__":
-    test_dataset = None  # 테스트 데이터셋
-    preds, times = None, None  # 요약 모델로 생성한 요약문 리스트, 소요 시간 리스트
+    test_dataset = []  # 테스트 데이터셋
+    preds, times = [], []  # 요약 모델로 생성한 요약문 리스트, 소요 시간 리스트
 
     ############ 평가 예시: 사용시 주석 처리 #############
+    
+    from summary.summary_inference_v1 import get_review_summary
+    
     test_dataset = [
         {
             "id": 1,
@@ -123,13 +130,11 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
 
-    preds, times = inference(
-        model,
-        tokenizer,
-        test_dataset,
-        prompt_template_path="/opt/ml/input/level3_nlp_finalproject-nlp-07/summary/templates/summary_v1.0_infer.json",
-    )
-
+    for item in test_dataset:
+        pred_list, time_list = get_review_summary(item["review"])
+        preds.append(" ".join(pred_list))
+        times.append(sum(time_list) / len(time_list))
+    
     del model
     del tokenizer
     gc.collect()
