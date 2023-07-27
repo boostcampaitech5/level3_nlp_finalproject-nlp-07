@@ -1,0 +1,30 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+@font-face {
+  font-family: "Pretendard-Bold";
+  src: url("./assets/fonts/Pretendard-Bold.ttf");
+}
+@font-face {
+  font-family: "Pretendard-Medium";
+  src: url("./assets/fonts/Pretendard-Medium.ttf");
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("./assets/fonts/Pretendard-Regular.ttf");
+}
+@font-face {
+  font-family: "Pretendard-SemiBold";
+  src: url("./assets/fonts/Pretendard-SemiBold.ttf");
+}
