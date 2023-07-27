@@ -9,13 +9,13 @@ from pytz import timezone
 
 def save_evaluation(
     evaluation: dict,
-    dir_name: str = "test_result",
+    dir_name: str = "",
     name: str = "",
     now: str = "",
 ) -> None:
     """`evaluation`을 json 파일에 저장
 
-    파일 경로: {dir_name}/{name}_{model_name}_{now}.json
+    파일 경로: {dir_name}/{name}_{now}.json
 
     Args:
         evaluation (dict): `evaluate()` 반환 값.\n
@@ -32,7 +32,8 @@ def save_evaluation(
         file_name += name + "_"
     file_name += now + ".json"
 
-    os.makedirs(dir_name, exist_ok=True)
+    if len(dir_name) > 0:
+        os.makedirs(dir_name, exist_ok=True)
 
     path = os.path.join(dir_name, file_name)
 

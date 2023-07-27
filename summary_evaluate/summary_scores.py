@@ -1,24 +1,30 @@
 import torch
 from typing import List
 from collections import defaultdict
-import evaluate
+import evaluate  # need to install rouge-score
 
 from utils.preprocess import remove_tag, split_into_list
 
 
 def fbeta_score(precision: float, recall: float, beta: float = 2.0):
-    return (1 + beta * beta) * precision * recall / (beta * beta * precision + recall)
+    return (
+        (1 + beta * beta)
+        * precision
+        * recall
+        / (beta * beta * precision + recall)
+        * 100
+    )
 
 
 def get_keyword_score(pred_keywords: List[List[str]], ref_keywords: List[List[str]]):
-    """키워드 기반 점수 반환
-    1. `f2`: 요약문 전체를 기준으로 계산한 f2 점수 x 100
-    2. `rougeLsum`: Summary-level Rouge-L x 100
+    """키워드 기반 점수 반환 [0, 100]
+    1. `f2`: 개수를 고려해서 모든 키워드에 대한 f2 점수
+    2. `rouge1`, `rouge2`, `rougeL`,`rougeLsum`
     """
 
     # 전체 요약문 기준 키워드 비교
-    pred_all_keywords = defaultdict(int)
-    ref_all_keywords = defaultdict(int)
+    pred_all_keywords = defaultdict(lambda: 0)
+    ref_all_keywords = defaultdict(lambda: 0)
     for pks in pred_keywords:
         for p in pks:
             pred_all_keywords[p] += 1
@@ -26,81 +32,39 @@ def get_keyword_score(pred_keywords: List[List[str]], ref_keywords: List[List[st
         for r in rks:
             ref_all_keywords[r] += 1
 
-    TP = 0
-    FN = 0
-    FP = 0
+    total_tp = 0
+    total_fn = 0
+    total_fp = 0
 
     for pk in pred_all_keywords:
-        if ref_all_keywords[pk] > 0:
-            TP += 1
-            ref_all_keywords[pk] -= 1
-        else:
-            FP += 1
+        tp = min(pred_all_keywords[pk], ref_all_keywords[pk])
+        fp = pred_all_keywords[pk] - tp
+        total_tp += tp
+        total_fp += fp
     for rk in ref_all_keywords:
-        if pred_all_keywords[rk] > 0:
-            pred_all_keywords[rk] -= 1
-        else:
-            FN += 1
+        fn = max(0, ref_all_keywords[rk] - pred_all_keywords[rk])
+        total_fn += fn
 
-    recall = TP / (TP + FN)
-    precision = TP / (TP + FP)
+    recall = total_tp / (total_tp + total_fn)
+    precision = total_tp / (total_tp + total_fp)
+
+    # Summary-level Rouge-L 구하기
+    pred_keyword_strings = [" ".join(pks) for pks in pred_keywords]
+    ref_keyword_strings = [" ".join(rks) for rks in ref_keywords]
+    pred_string = "\n".join(pred_keyword_strings)
+    ref_string = "\n".join(ref_keyword_strings)
 
     rouge = evaluate.load("rouge")
-    pred_string = "\n".join([" ".join(pks) for pks in pred_keywords])
-    ref_string = "\n".join([" ".join(rks) for rks in ref_keywords])
-    rouge_score = rouge.compute(
+    rouge_scores = rouge.compute(
         predictions=[pred_string],
         references=[ref_string],
         tokenizer=lambda x: x.split(),
-        rouge_types=["rougeLsum"],
+        rouge_types=["rouge1", "rouge2", "rougeL", "rougeLsum"],
         use_aggregator=False,
-    )["rougeLsum"][0]
+    )
+    rouge_scores = {s: rouge_scores[s][0] * 100 for s in rouge_scores}
 
-    return {
-        "f2": fbeta_score(precision, recall, 2.0) * 100,
-        "rougeLsum": rouge_score * 100,
-    }
-
-
-# def get_f2_score(text:str, keywords: List[List[str]]):
-#     """문장 별로 키워드 비교"""
-
-#     text = remove_tag(text)
-#     text_list = split_into_list(text)
-#     score = 0
-#     delim = ".+"
-#     count = [0 for _ in text_list]
-#     log = ""
-
-#     for keyword in keywords:
-#         log += f"Keyword {keyword}\n"
-#         pattern = ""
-#         for k in keyword.split():
-#             pattern += k + delim
-#         pattern = pattern[:-2] # 마지막 delim 제거
-#         found = False
-#         for tidx, t in enumerate(text_list):
-#             res = re.search(pattern, t)
-#             if res:
-#                 log += f":: {t[:res.start()]}<{t[res.start():res.end()]}>{t[res.end():]}\n"
-#                 count[tidx] += 1
-#                 found = True
-#         if found: score += 1
-
-#     not_needed_text = [text_list[tidx] for tidx in range(len(text_list)) if count[tidx] == 0 ]
-
-#     log += (
-#         "===\n"
-#         f"Has {score}/{len(keywords)} keywords.\n"
-#         f"Has {len(not_needed_text)}/{len(text_list)} wrong lines.\n"
-#     ) + str(not_needed_text)
-
-#     keyword_score = score/len(keywords) # recall
-#     line_score = (len(text_list) - len(not_needed_text)) / len(text_list) # precison
-#     beta = 2 # beta times as much importance to recall as precision"
-#     fbeta_score = (1 + beta*beta) * keyword_score * line_score / (beta*beta*line_score + keyword_score)
-
-#     return fbeta_score * 100, log
+    return {"f2": fbeta_score(precision, recall, 2.0), **rouge_scores}
 
 
 def get_length_penalty(pred, ref):

@@ -1,11 +1,11 @@
-# summary: 리뷰 요약 모델 평가를 위한 폴더
+# summary_evaluate: 리뷰 요약 모델 평가를 위한 폴더
 
 ## 구성 파일
 
+- **prepare.ipynb**
+  - 테스트 데이터셋, 요약 결과물 형식 변환
 - **keyword_extractor.py** > `class KeywordExtractor`
   - 요약문에서 키워드를 추출하기 위한 클래스
-- **summary_inference.py** > `inference()`
-  - (1) 생성한 요약문과 (2) 소요 시간 반환
 - **summary_evaluate.py** > `evaluate()`
   - (1) 전체 테스트 데이터셋에 대한 평가 점수 반환
   - (2) 각 데이터에 대한 평가 점수 반환
@@ -13,7 +13,7 @@
   - 여러 평가 지표 함수 모음
     |함수|평가 지표|
     |---|---|
-    |`get_keyword_score()`|(1) 키워드 기반 F2 점수<br>(2) 키워드 기반 Summary-level ROUGE-L|
+    |`get_keyword_score()`|(1) F2 점수<br>(2) Summary-level ROUGE-L(3) Rouge-1, Rouge-2, Sentence-level Rouge-L|
     |`get_length_penalty()`|(1) 길이 페널티<br>(2) 길이 차이|
     |`get_sts_score()`|유사도|
 - **summary_utils.py**
@@ -30,6 +30,8 @@
 2. 요약 모델 결과물:
     - (1) 평가할 요약 모델이 테스트 데이터셋에 대해 생성한 요약문: `List[str]`
     - (2) 각 요약문을 생성하는데 걸린 시간: `List[int]`
+
+**prepare.ipynb** 참고
 
 ### 테스트 데이터셋 형식
 
@@ -55,11 +57,12 @@
   ```
   {
       "total": { // 전체 데이터셋에 대한 평가 결과
-          "f2_penalty": 평균 (f2 점수 + 길이 페널티), 
           "f2": 평균 f2 점수, 
           "time": 평균 소요 시간, 
-          "f2": 평균 키워드 기반 F2 점수,
           "rougeLsum": 평균 키워드 기반 Summary-level Rouge-L 점수,
+          "rouge1",
+          "rouge2",
+          "rougeL",
           "sts_score": 평균 유사도 점수
           }, 
       "results": [ // 각 데이터에 대한 평가 결과
@@ -73,11 +76,14 @@
               "pred_keywords": 요약 모델 생성 결과에서 추출한 키워드,
               "f2": 키워드 기반 F2 점수,
               "rougeLsum": 키워드 기반 Summary-level Rouge-L 점수,
+              "rouge1",
+              "rouge2",
+              "rougeL",
               "sts_score": 유사도 점수, 
               "length_diff": 생성 결과 길이 - 답 길이, 
           }, ...]
   }
   ```
 
-- `f2, rougeLsum, sts_score`에는 100을 곱해서 저장
+- 각 점수는 최소 0, 최대 100
 - `time`은 소요 시간 리스트가 주어지지 않았다면 `-1.0`으로 초기화

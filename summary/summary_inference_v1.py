@@ -1,23 +1,8 @@
 from typing import List
-from fastapi import FastAPI
 import re
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 import torch
-from starlette.middleware.cors import CORSMiddleware
-
-
-app = FastAPI()
-
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-# 실행 : uvicorn summary_main:app --port 30007 --host 0.0.0.0
+import time
 
 MODEL = "boostcamp-5th-nlp07/koalpaca-polyglot-5.8b-summary-v1.0"
 
@@ -113,10 +98,14 @@ def split_front(text: str, split_length: int = 500, stride: int = 10):
     return front, back
     
 
-@app.post("/summary")
 def get_review_summary(reviews: List[str]):
+    """reviews를 하나의 문자열로 합치고 전체를 글자수로 기준으로 잘라서 입력으로 넣는다.\n
+    각 잘린 부분에 대해 생성 결과와 소요시간을 리스트로 반환한다."""
+    
+    result_list = []
+    time_list = []
+
     input_text = ""
-    summary = ""
     
     split_reviews = []
     max_length = 500 # 공백 미포함 최대 글자수
@@ -134,14 +123,62 @@ def get_review_summary(reviews: List[str]):
     
     for review in split_reviews:
         if get_no_space_length(input_text) + get_no_space_length(review) > max_length:
+            start = time.time()
             result = generate_summary(input_text)
-            summary = summary + " " + result
+            end = time.time()
+            
+            result_list.append(result)
+            time_list.append(end - start)
+            
             input_text = ""
         
         input_text = input_text + " " + review
             
-    
+    start = time.time()
     result = generate_summary(input_text)
-    summary = summary + " " + result
+    end = time.time()
     
-    return summary.strip()
+    result_list.append(result)
+    time_list.append(end - start)
+    
+    return result_list, time_list
+
+if __name__ == "__main__":
+    import pandas as pd
+    from tqdm import tqdm
+    import time
+    import os
+    from datetime import datetime
+    from pytz import timezone
+    
+    INPUT_FILE = "/opt/ml/input/data/test_data.csv"
+    OUTPUT_FILE = "output/v1.0_" + datetime.now(timezone("Asia/Seoul")).strftime("%m%d%H%M")
+
+    os.makedirs(os.path.split(OUTPUT_FILE)[0], exist_ok=True)
+    
+    print("Input file:", INPUT_FILE)
+    print("Output file:", OUTPUT_FILE)
+    
+    df = pd.read_csv(INPUT_FILE)
+    
+    # 컬럼명
+    ID = "id"
+    REVIEW = "filtered_context"
+    
+    results = []
+    
+    for idx, item in tqdm(df.iterrows(), total=len(df), desc="Generating summary"):
+        
+        result_list, time_list = get_review_summary([item[REVIEW]])
+        
+        res = {
+            ID: item[ID],
+            "output": result_list,
+            "time": time_list
+        }
+        results.append(res)
+    
+    result_df = pd.DataFrame(results)
+    
+    result_df.to_csv(OUTPUT_FILE)
+    print("Result saved at:", OUTPUT_FILE)
