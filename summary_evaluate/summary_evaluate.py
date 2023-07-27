@@ -10,11 +10,6 @@ from summary_scores import get_keyword_score, get_length_penalty, get_sts_score
 from keyword_extractor import KeywordExtractor
 from summary_utils import save_evaluation
 
-# from summary_scores import get_keyword_score, get_length_penalty, get_sts_score
-# from summary_inference import inference
-# from keyword_extractor import KeywordExtractor
-# from summary_utils import save_evaluation
-
 
 def evaluate(
     preds: List[str], dataset, sts_model, sts_tokenizer, times: List[float] = None
@@ -107,51 +102,67 @@ if __name__ == "__main__":
     test_dataset = []  # 테스트 데이터셋
     preds, times = [], []  # 요약 모델로 생성한 요약문 리스트, 소요 시간 리스트
 
+    import json
+    import os
+
+    READY_PATH = "/opt/ml/input/output/outout_T5_g256_ready.json"
+
+    print("Read file:", READY_PATH)
+
+    with open(READY_PATH, "r", encoding="utf-8") as f:
+        ready_dict = json.load(f)
+        test_dataset = ready_dict["test_dataset"]
+        preds = ready_dict["preds"]
+        times = ready_dict["times"]
+        res_path = ready_dict["path"]
+
+    dirname, filename = os.path.split(res_path)
+    filename, ext = os.path.splitext(filename)
+    filename += "_scores"
+
     ############ 평가 예시: 사용시 주석 처리 #############
-    
-    from summary.summary_inference_v1 import get_review_summary
-    
-    test_dataset = [
-        {
-            "id": 1,
-            "prod_name": "떡볶이 추억의 국민학교 떡볶이 오리지널 (냉동), 600g, 2개",
-            "review": "냄비에 물 360ml 받아 빨강 소스 한봉을 다. 깜장 소스는 단맛을 조절하는 소스예요. 떡이 쫀득하니 맛있네요. 어묵이 3장 들어있어요. 집에서 떡볶이 먹고 싶을 때 요. 밀키트로 만들어 먹기 좋아요.",
-            "summary": "<조리> 냄비 <맛> 단맛 조절 <식감> 떡이 쫀득 <구성> 어묵 3장",
-        }
-    ]
 
-    MODEL = "boostcamp-5th-nlp07/koalpaca-polyglot-5.8b-summary-v1.0"
+    # from summary.summary_inference_v1 import get_review_summary
 
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL,
-        torch_dtype=torch.float16,
-        low_cpu_mem_usage=True,
-    ).to(device=f"cuda", non_blocking=True)
+    # test_dataset = [
+    #     {
+    #         "id": 1,
+    #         "prod_name": "떡볶이 추억의 국민학교 떡볶이 오리지널 (냉동), 600g, 2개",
+    #         "review": "냄비에 물 360ml 받아 빨강 소스 한봉을 다. 깜장 소스는 단맛을 조절하는 소스예요. 떡이 쫀득하니 맛있네요. 어묵이 3장 들어있어요. 집에서 떡볶이 먹고 싶을 때 요. 밀키트로 만들어 먹기 좋아요.",
+    #         "summary": "<조리> 냄비 <맛> 단맛 조절 <식감> 떡이 쫀득 <구성> 어묵 3장",
+    #     }
+    # ]
 
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    # MODEL = "boostcamp-5th-nlp07/koalpaca-polyglot-5.8b-summary-v1.0"
 
-    for item in test_dataset:
-        pred_list, time_list = get_review_summary(item["review"])
-        preds.append(" ".join(pred_list))
-        times.append(sum(time_list) / len(time_list))
-    
-    del model
-    del tokenizer
-    gc.collect()
+    # model = AutoModelForCausalLM.from_pretrained(
+    #     MODEL,
+    #     torch_dtype=torch.float16,
+    #     low_cpu_mem_usage=True,
+    # ).to(device=f"cuda", non_blocking=True)
+
+    # tokenizer = AutoTokenizer.from_pretrained(MODEL)
+
+    # for item in test_dataset:
+    #     pred_list, time_list = get_review_summary(item["review"])
+    #     preds.append(" ".join(pred_list))
+    #     times.append(sum(time_list) / len(time_list))
+
+    # del model
+    # del tokenizer
+    # gc.collect()
 
     ############ 평가 예시 끝 #############
 
-    STS_MODEL = "BM-K/KoSimCSE-roberta"
-    print(f"Loading model and tokenizer for sts_score: {STS_MODEL}")
-    sentence_model = AutoModel.from_pretrained(STS_MODEL)
-    sentence_tokenizer = AutoTokenizer.from_pretrained(STS_MODEL)
+    SENT_MODEL = "BM-K/KoSimCSE-roberta"
+    print(f"Loading model and tokenizer for sts_score: {SENT_MODEL}")
+    sentence_model = AutoModel.from_pretrained(SENT_MODEL)
+    sentence_tokenizer = AutoTokenizer.from_pretrained(SENT_MODEL)
     eval_result = evaluate(
         preds, test_dataset, sentence_model, sentence_tokenizer, times
     )
 
     print("\n=== Total evaluation result ===")
     print(eval_result["total"])
-    print("\n=== Test result example ===")
-    print(eval_result["results"][0])
 
-    save_evaluation(eval_result)
+    save_evaluation(eval_result, dir_name=dirname, name=filename)
