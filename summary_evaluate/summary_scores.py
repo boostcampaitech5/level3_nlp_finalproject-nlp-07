@@ -1,20 +1,25 @@
 import torch
 from typing import List
 from collections import defaultdict
-import evaluate
+import evaluate  # need to install rouge-score
 
 from utils.preprocess import remove_tag, split_into_list
 
 
 def fbeta_score(precision: float, recall: float, beta: float = 2.0):
-    return (1 + beta * beta) * precision * recall / (beta * beta * precision + recall) * 100
+    return (
+        (1 + beta * beta)
+        * precision
+        * recall
+        / (beta * beta * precision + recall)
+        * 100
+    )
 
 
 def get_keyword_score(pred_keywords: List[List[str]], ref_keywords: List[List[str]]):
     """키워드 기반 점수 반환 [0, 100]
     1. `f2`: 개수를 고려해서 모든 키워드에 대한 f2 점수
-    2. `rougeLsum`: Summary-level Rouge-L
-    3. `rouge1`, `rouge2`, `rougeL`: 하나의 ref 문장에 대해 각 pred 문장과의 점수 계산 후 최대값 사용. 전체 점수는 모든 ref 문장에 대한 점수의 평균값
+    2. `rouge1`, `rouge2`, `rougeL`,`rougeLsum`
     """
 
     # 전체 요약문 기준 키워드 비교
@@ -46,44 +51,21 @@ def get_keyword_score(pred_keywords: List[List[str]], ref_keywords: List[List[st
     # Summary-level Rouge-L 구하기
     pred_keyword_strings = [" ".join(pks) for pks in pred_keywords]
     ref_keyword_strings = [" ".join(rks) for rks in ref_keywords]
-    
-    rouge = evaluate.load("rouge")
     pred_string = "\n".join(pred_keyword_strings)
     ref_string = "\n".join(ref_keyword_strings)
-    rougeLsum = rouge.compute(
+
+    rouge = evaluate.load("rouge")
+    rouge_scores = rouge.compute(
         predictions=[pred_string],
         references=[ref_string],
         tokenizer=lambda x: x.split(),
-        rouge_types=["rougeLsum"],
+        rouge_types=["rouge1", "rouge2", "rougeL", "rougeLsum"],
         use_aggregator=False,
-    )["rougeLsum"][0] * 100
+    )
+    rouge_scores = {s: rouge_scores[s][0] * 100 for s in rouge_scores}
 
-    # Rouge-1, Rouge-2, Rouge-L 점수 구하기
-    rouge_scores = defaultdict(lambda: 0.0)
-    
-    for rks in ref_keywords:
-        # ref 문장 하나와 pred 문장들 간 rouge 점수 중 최대값 사용
-        scores = rouge.compute(
-            predictions=pred_keyword_strings,
-            references=[ref_keyword_strings[0] for _ in pred_keywords],
-            tokenizer=lambda x: x.split(),
-            rouge_types=["rouge1", "rouge2", "rougeL"],
-            use_aggregator=False
-        ) # {"rouge1": [], "rouge2": [], "rougeL": []}
-        
-        for key, val_list in scores.items():
-            rouge_scores[key] += max(val_list)
-    
-    # 각 ref 문장에 대한 rouge 점수의 평균값 x 100
-    ref_len = len(ref_keyword_strings)
-    for key in rouge_scores:
-        rouge_scores[key] = rouge_scores[key] / ref_len * 100
+    return {"f2": fbeta_score(precision, recall, 2.0), **rouge_scores}
 
-    return {
-        "f2": fbeta_score(precision, recall, 2.0),
-        "rougeLsum": rougeLsum,
-        **rouge_scores
-    }
 
 def get_length_penalty(pred, ref):
     """반환: 길이 페널티, 길이 차이"""
@@ -143,17 +125,3 @@ if __name__ == "__main__":
     ref_keywords = [["가", "라", "가"], ["나", "나"]]
 
     print(get_keyword_score(pred_keywords, ref_keywords))
-    
-    # rouge = evaluate.load("rouge")
-    
-    # pred_keyword_strings = [" ".join(pks) for pks in pred_keywords]
-    # ref_keyword_strings = [" ".join(rks) for rks in ref_keywords]
-    
-    # scores = rouge.compute(
-    #     predictions=[" ".join(pred_keyword_strings)] ,
-    #     references=[" ".join(ref_keyword_strings)],
-    #     tokenizer=lambda x: x.split(),
-    #     rouge_types=["rouge1", "rouge2", "rougeL"],
-    #     use_aggregator=False
-    # )
-    # print(scores)
