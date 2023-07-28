@@ -3,7 +3,7 @@
 
 [CHOSEN](http://chosen.o-r.kr/)
 
-<img width="800" alt="Untitled" src="https://github.com/hoooolllly/readmetest/assets/126573689/6abd9632-13fa-4fa8-aa10-b6eda6674700">
+<img width="800" alt="Untitled" src="./utils/img/overview.png">
 
 <br/><br/>
 
@@ -21,6 +21,7 @@
 
 <br/>
 
+
 ## 팀원 역할
 
 - `권지은`: 데이터 필터링, 요약 모델 학습 데이터 제작, 요약 모델 학습 및 평가, 요약 API 제작
@@ -30,6 +31,8 @@
 - `최윤진`: 데이터 수집, Airflow 스케줄링, DB API
 
 <br/><br/>
+
+
 
 # 🙌 프로젝트를 소개합니다.
 
@@ -53,7 +56,7 @@
 
 ✅ 피드백을 반영하여 추천 만족도를 **지속적으로** 높이도록 하는 거예요.
 
-<img width="437" alt="Untitled" src="https://github.com/hoooolllly/readmetest/assets/126573689/e2d1fab1-60e7-4ec4-a8b0-6f8dc70d5858">
+<img width="437" alt="Untitled" src="./utils/img/team_vision.png">
 
 <br/><br/>
 
@@ -99,7 +102,7 @@
 4️⃣ 어떻게 하면 서비스의 **결과를 보는 시간**을 줄일 수 있을까?
 
 
-자세한 내용은 링크에서 확인해보세요
+
 
 <br/><br/>
 
