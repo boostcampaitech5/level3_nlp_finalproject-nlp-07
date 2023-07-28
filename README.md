@@ -1,4 +1,9 @@
 # **부스트캠프 AI Tech 5기 07조 Final Project**
+## NLP07 연어보다자연어조
+## Chosen : 사용자의 입력에 따른 리뷰 기반 상품 추천 서비스
+
+
+- [서빙 레포지토리](https://github.com/boostcampaitech5/level3_nlp_productserving-nlp-07) 
 
 
 [CHOSEN](http://chosen.o-r.kr/)
