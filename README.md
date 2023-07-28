@@ -630,7 +630,7 @@ AI 요약 모델을 통해 리뷰 데이터를 요약문으로 만들기 위해�
 
 지금까지 `연어보다자연어` 팀의 여정을 읽어주셔서 감사합니다.
 
-<img width="500" alt="" src="./utils/img/teamlogo.png">
+<img width="250" alt="" src="./utils/img/teamlogo.png">
 
 
 <br/><br/>
