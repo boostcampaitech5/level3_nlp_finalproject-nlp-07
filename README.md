@@ -129,10 +129,7 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
 - **쿠팡에서 선정한 TOP10 상품 수집**
 상품 이미지 좌측 상단을 보면 쿠팡에서 자체적으로 선정한 ‘**쿠팡 랭킹**’ 이라는 게 있습니다. **리뷰 수, 인기도, 판매량 등을 고려해서 쿠팡 자체적으로 10개의 상품에 태그를 이미 붙여준 것입니다**. 저희는 이런 데이터들이 일반적인 선호도를 반영한다고 생각했고 이 데이터만 수집하기로 결정했습니다. **리뷰 수가 이미 많은 top-10 상품들은 저희의 목표인 리뷰 데이터 기반 상품 서비스에 더 적합하다는 점도 고려했습니다.💡**
 
-
-<img width="1626" alt="helped_cnt" src="./utils/img/helped_cnt.png">
-
-<img width="1626" alt="general_vs_top10" src="./utils/img/general_vs_top10.png">
+<img width="500" alt="general_vs_top10" src="./utils/img/general_vs_top10.png">
 
 
 
@@ -154,8 +151,9 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
     쿠팡 자체적으로 ‘**도움이 돼요**’라는 지표를 가지고 있습니다. 이것이 한 번이라도 눌린 리뷰를 수집하여 **최소한의 유용성을 보장**하는 데이터를 
 
     
+<img width="500" alt="helped_cnt" src="./utils/img/helped_cnt.png">
 
-
+<img width="500" alt="data_collect_line" src="./utils/img/data_collect_line.png">
 
 결론적으로 저희가 최종적으로 수립한 **<리뷰 데이터 수집 기준>** 은 아래와 같습니다. 
 
@@ -170,7 +168,7 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
 
 하지만 이렇게 수집한 리뷰 데이터들은 당연히 문제를 가지고 있었습니다. 🤔  대표적으로 리뷰 데이터의 문장들을 구체적으로 확인해보았을 때 **요리 방법, 인사말 등 요약에 필요하지 않은 문장**들이 존재했습니다. 아래 그림을 보면 확실히 알 수 있습니다. 저희는 요약의 품질 향상 및 시간 단축을 위해 **데이터 필터링 전략**에 대해 고민을 하게 되었습니다. 
 
-![조리법 관련된 정보는 요약 정보에 필요하지 않습니다. ](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/954e79b7-1681-4c3f-9c7b-44ff5d98f8a6/Untitled.png)
+<img width="500" alt="" src="./utils/img/1_3_1.png">
 
 조리법 관련된 정보는 요약 정보에 필요하지 않습니다. 
 
@@ -182,7 +180,7 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
     
     **Kmeans 클러스터링**을 통해 조리법 관련 문장들을 제거하기 위한 시도를 했습니다. ‘맛’, ‘식감’, ‘조리’ 와 같은 **클러스터**를 만들어서 제거하는 방법이었습니다. 아래 그림 처럼 ‘조리’ 를 통해 클러스터링을 하면 관련된 문장들이 클러스터를 형성하는 것을 알 수 있습니다. **하지만 제거 해야하는 문장의 절반도 필터링하지 못 했습니다. 😂**
     
-    ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3dc84c31-97e1-4b88-bb6d-d3d18dbd5408/Untitled.png)
+    <img width="500" alt="" src="./utils/img/1_3_2.png">
     
 
 - **규칙 기반 필터링**
@@ -191,20 +189,20 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
     
     단순한 방법이었지만 효과적이었습니다. 🤖
     
-    ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/e8ff0c58-afab-4729-add2-7c48b29d53ab/Untitled.png)
+    <img width="500" alt="" src="./utils/img/1_3_3.png">
     
 
 ### 1-4 데이터 전처리
 
 리뷰 데이터는 비정형 데이터이기 때문에 반드시 정제가 필요합니다. 아래 기준에 맞추어서 리뷰 데이터를 전처리 해주었습니다. hanspell 라이브러리를 이용해 맞춤법 검사도 해주었습니다. 
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/89187fb0-98d4-40f5-99e4-c6bce17aab2f/Untitled.png)
+<img width="500" alt="" src="./utils/img/1_4_1.png">
 
 ### 1-5 중복 상품 제거
 
 **같은 상품이지만 중량 혹은 개수의 차이로 인해 쿠팡 top-10 랭킹에 여러 상품으로 표시되는 경우**도 있었습니다. 쿠팡에서 부여한 **고유 상품 번호**를 이용해서 중복된 데이터가 수집되는 것을 방지했습니다.
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5aae064f-befd-4017-8112-31d10799bacc/Untitled.png)
+<img width="500" alt="" src="./utils/img/1_5_1.png">
 
 저희는 위 과정을 거쳐 총 **506**개의 검색어에 대한 **4983**개의 상품 데이터, **77732**개의 리뷰 데이터를 수집했습니다.
 
