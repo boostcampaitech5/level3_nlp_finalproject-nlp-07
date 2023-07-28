@@ -6,9 +6,32 @@ import configparser
 import uvicorn
 from typing import List, Union, Optional, Dict, Any
 import aiomysql
+import sys
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
+from crawler.crawling_products_bs4 import crawling_products
+from crawler.crawling_reviews import CSV
+from db_scripts.csv2db import run_pipeline
+from pathlib import Path
+import pandas as pd
+from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse
+
 
 app = FastAPI()
 
+
+import json
+import numpy as np
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if np.isinf(obj) or np.isnan(obj):
+            return None
+        return json.JSONEncoder.default(self, obj)
+    
 
 class Product(BaseModel):
     prod_name: str
@@ -64,7 +87,9 @@ async def search_product(prod_name: str):
 
 
 @app.get("/reviews/prod_name/{prod_name}")
-def read_reviews(prod_name: str):
+# def read_reviews(prod_name: str):
+def read_reviews(prod_name: str, response: Response):
+
     '''
     정확히 일치하는 제품명 관련 리뷰 찾기 API (일치)
     :param prod_name:
@@ -76,8 +101,54 @@ def read_reviews(prod_name: str):
     result = cursor.fetchall()
 
     if len(result) == 0:
+        print("No review found for name: ", prod_name)
+        # 크롤링 로직
+        # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
+        print(prod_name)
+        search_list = {'음식': [prod_name]}
+
+
+        product_file_name = crawling_products(search_list)
+
+        review_file_name = CSV.save_file(product_file_name, 3)
+
+        version = 'immediately_crawling'
+
+        current_directory = Path(__file__).resolve().parent.parent.parent
+        print(current_directory)
+
+        product_csv_path = current_directory.joinpath("utils", "db_api", f"{product_file_name}.csv")
+        review_csv_path = current_directory.joinpath("utils", "db_api", f"{review_file_name}.csv")
+
+        product_csv_file = f"{product_csv_path}"
+        review_csv_file = f"{review_csv_path}"
+
+        run_pipeline(product_csv_file, review_csv_file, version)
+
+        # print csv filenames
+        print(os.path.basename(product_csv_file))
+        print(os.path.basename(review_csv_file))
+
+        review_df = pd.read_csv(review_csv_file, dtype={"headline": str})
+        review_df = review_df.replace([np.inf, -np.inf], np.nan)  # replace all inf by NaN
+        review_df = review_df.dropna()  # drop all rows with NaN
+
+
+
+        reviews = []
+        for index, row in review_df.iterrows():
+            reviews.append({
+                "prod_name" : row[0],
+                "rating": row[2],
+                "title": row[3],
+                "context": row[4],
+                "answer": row[5]
+            })  
+
+
         conn.close()
-        return {"error": f"No product found for name: {prod_name}"}
+        return {"crawling_yn":"Y", "reviews":reviews}
+
 
     reviews = []
     for row in result:
@@ -108,9 +179,53 @@ def read_reviews(prod_name: str):
     result = cursor.fetchall()
 
     if len(result) == 0:
-        conn.close()
-        return {"error": f"No product found for name: {prod_name}"}
+        # 크롤링 로직
+        # 직접 넣도 싶다면 다음과 같은 형식으로 넣으면 된다.
+        print(prod_name)
+        search_list = {'음식': [prod_name]}
 
+
+        product_file_name = crawling_products(search_list)
+
+        review_file_name = CSV.save_file(product_file_name, 3)
+
+        version = 'immediately_crawling'
+
+        current_directory = Path(__file__).resolve().parent.parent.parent
+        print(current_directory)
+
+        product_csv_path = current_directory.joinpath("utils", "db_api", f"{product_file_name}.csv")
+        review_csv_path = current_directory.joinpath("utils", "db_api", f"{review_file_name}.csv")
+
+        product_csv_file = f"{product_csv_path}"
+        review_csv_file = f"{review_csv_path}"
+
+        run_pipeline(product_csv_file, review_csv_file, version)
+
+        # print csv filenames
+        print(os.path.basename(product_csv_file))
+        print(os.path.basename(review_csv_file))
+
+        review_df = pd.read_csv(review_csv_file, dtype={"headline": str})
+        review_df = review_df.replace([np.inf, -np.inf], np.nan)  # replace all inf by NaN
+        review_df = review_df.dropna()  # drop all rows with NaN
+
+
+
+        reviews = []
+        for index, row in review_df.iterrows():
+            reviews.append({
+                "prod_name" : row[0],
+                "rating": row[2],
+                "title": row[3],
+                "context": row[4],
+                "answer": row[5]
+            })  
+
+        conn.close()
+        return {"crawling_yn":"Y", "reviews":reviews}
+    
+    
     reviews = []
     for row in result:
         reviews.append({
@@ -124,7 +239,7 @@ def read_reviews(prod_name: str):
         })
 
     conn.close()
-    return {"reviews": reviews}
+    return {"crawling_yn":"N", "reviews": reviews}
 
 @app.get("/reviews/all")
 def read_reviews():

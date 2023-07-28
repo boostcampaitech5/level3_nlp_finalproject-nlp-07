@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymysql
+beautifulsoup4
+pandas
+openpyxl
+tqdm
+lxml
+python-dotenv
