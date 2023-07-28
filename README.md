@@ -5,7 +5,7 @@
 - [서빙 레포지토리](https://github.com/boostcampaitech5/level3_nlp_productserving-nlp-07) 
 
 
-[CHOSEN](http://chosen.o-r.kr/)
+### 📌 Service on [LINK](http://chosen.o-r.kr/)
 
 <img width="800" alt="Untitled" src="./utils/img/overview.png">
 
