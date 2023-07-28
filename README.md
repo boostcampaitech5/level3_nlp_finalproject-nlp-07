@@ -221,27 +221,27 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
 
 ## 프로젝트 타임라인
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/e0d116e2-f488-41b8-8197-808778d4397f/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_1.png">
 
 ## 기술 스택
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7ea00a33-012d-4d6b-ae8d-53105e530aa1/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_2.png">
 
 ## 프로젝트 플로우 차트
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3904ae61-8f80-4fc5-89bc-5123867f4ef7/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_3.png">
 
 ## 서비스 아키텍처
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9b7636e4-a5fd-420a-af3f-bec482d0aa01/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_4.png">
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/187bdd88-cc44-435e-a3c1-b07b1fd40ff9/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_5.png">
 
 ## ERD
 
 아래 ERD 대로 MySQL 테이블을 만들고 수집한 데이터를 저장해줬습니다.
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/20ca4fbd-2762-4536-b605-5fef674a6c53/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_6.png">
 
 ## 실제 데이터
 
@@ -249,11 +249,11 @@ AI 프로젝트의 첫 출발은 데이터 수집입니다. 이 과정에서 나
 
 📌**상품 데이터**
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/649e4323-a134-4a2a-b326-2910b6ea9a10/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_7.png">
 
 📌 **리뷰 데이터**
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/a138819f-dc2d-4266-a2e5-e3af50f02554/Untitled.png)
+<img width="900" alt="" src="./utils/img/wrapup_8.png">
 
 ## 자체 평가 의견
 
